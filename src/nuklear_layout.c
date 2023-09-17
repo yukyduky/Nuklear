@@ -6,6 +6,16 @@
  *                          LAYOUT
  *
  * ===============================================================*/
+NK_API float
+nk_layout_get_min_row_height(struct nk_context *ctx)
+{
+	NK_ASSERT(ctx);
+	NK_ASSERT(ctx->current);
+	NK_ASSERT(ctx->current->layout);
+	if (!ctx || !ctx->current || !ctx->current->layout)
+		return;
+	return ctx->current->layout->row.min_height;
+}
 NK_API void
 nk_layout_set_min_row_height(struct nk_context *ctx, float height)
 {
@@ -759,6 +769,28 @@ nk_layout_peek(struct nk_rect *bounds, struct nk_context *ctx)
     }
     layout->at_y = y;
     layout->row.index = index;
+}
+NK_LIB void
+nk_layout_extend_label_height(struct nk_context *ctx, int rows)
+{
+	const struct nk_style *style;
+    struct nk_panel *layout;
+
+	NK_ASSERT(ctx);
+	NK_ASSERT(ctx->current);
+    NK_ASSERT(ctx->current->layout);
+    if (!ctx || !ctx->current || !ctx->current->layout) {
+        return;
+    }
+
+    style = &ctx->style;
+    layout = ctx->current->layout;
+
+	const float font_height = style->font->height;
+	const float text_padding = style->text.padding.y * 2.0f;
+	const float row_height = font_height + text_padding;
+	const float spacing = style->window.spacing.y;
+	layout->row.height = (row_height * rows) + spacing;
 }
 NK_API void
 nk_spacer(struct nk_context *ctx )

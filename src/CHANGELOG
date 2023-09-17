@@ -7,6 +7,19 @@
 ///   - [y]: Minor version with non-breaking API and library changes
 ///   - [z]: Patch version with no direct changes to the API
 ///
+/// - 2023/09/17 (4.11.0) - Added nk_widget_text_wrap_coded, wraps and handles coded text for colors and links
+///						  - Added nk_layout_extend_label_height, extends the label height if they wrap
+///						  - Added nk_text_remove_hex_colors, removes hex color code from text
+///						  - Added nk_text_extract_links, removes link code from text
+///						  - Added nk_text_remove_code, removes both color and link code from text
+///						  - Added nk_layout_get_min_row_height, gets the current minimum row height
+///						  - Added nk_text_wrap_coded, copy of nk_text_wrap_colored for coded text
+///						  - Added nk_label_coded_wrap, API function for coded text
+///						  - Added nk_text_link, struct for link data in coded texts
+///						  - Added NK_WINDOW_DYNAMIC_HEIGHT, window flag for dynamically adjusting the window height
+///							depending on panels in the window
+///						  - Added NK_WINDOW_FOCUS_IF_LATEST, window flag for keeping focus to newly created windows
+///							that dont overlap the previous window
 /// - 2022/12/23 (4.10.6) - Fix incorrect glyph index in nk_font_bake()
 /// - 2022/12/17 (4.10.5) - Fix nk_font_bake_pack() using TTC font offset incorrectly
 /// - 2022/10/24 (4.10.4) - Fix nk_str_{append,insert}_str_utf8 always returning 0

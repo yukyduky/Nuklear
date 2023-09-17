@@ -221,18 +221,23 @@ NK_LIB void nk_panel_alloc_row(const struct nk_context *ctx, struct nk_window *w
 NK_LIB void nk_layout_widget_space(struct nk_rect *bounds, const struct nk_context *ctx, struct nk_window *win, int modify);
 NK_LIB void nk_panel_alloc_space(struct nk_rect *bounds, const struct nk_context *ctx);
 NK_LIB void nk_layout_peek(struct nk_rect *bounds, struct nk_context *ctx);
+NK_LIB void nk_layout_extend_label_height(struct nk_context *ctx, int rows);
 
 /* popup */
 NK_LIB nk_bool nk_nonblock_begin(struct nk_context *ctx, nk_flags flags, struct nk_rect body, struct nk_rect header, enum nk_panel_type panel_type);
 
 /* text */
 struct nk_text {
-    struct nk_vec2 padding;
-    struct nk_color background;
-    struct nk_color text;
+	struct nk_vec2 padding;
+	struct nk_color background;
+	struct nk_color text;
 };
 NK_LIB void nk_widget_text(struct nk_command_buffer *o, struct nk_rect b, const char *string, int len, const struct nk_text *t, nk_flags a, const struct nk_user_font *f);
-NK_LIB void nk_widget_text_wrap(struct nk_command_buffer *o, struct nk_rect b, const char *string, int len, const struct nk_text *t, const struct nk_user_font *f);
+NK_LIB void nk_widget_text_wrap(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b, const char *string, int len, const struct nk_text *t, const struct nk_user_font *f);
+NK_LIB void nk_widget_text_wrap_coded(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b,	const char *string, int len, const struct nk_text *t,	const struct nk_user_font *f, struct nk_text_link *links, int &numLinks);
+NK_LIB void nk_text_remove_hex_colors(const char* text, int &len, char *hexFreeText);
+NK_LIB void nk_text_extract_links(const char* text, int &len, char *linkFreeText, struct nk_text_link *links, int& numLinks);
+NK_LIB void nk_text_remove_code(const char* text, int &len, char *cleanText);
 
 /* button */
 NK_LIB nk_bool nk_button_behavior(nk_flags *state, struct nk_rect r, const struct nk_input *i, enum nk_button_behavior behavior);

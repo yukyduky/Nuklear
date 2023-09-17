@@ -231,6 +231,7 @@ struct nk_draw_command;
 struct nk_convert_config;
 struct nk_style_item;
 struct nk_text_edit;
+struct nk_text_link;
 struct nk_draw_list;
 struct nk_user_font;
 struct nk_panel;
@@ -2027,6 +2028,7 @@ NK_API void nk_window_show_if(struct nk_context*, const char *name, enum nk_show
 /// #### Reference
 /// Function                                | Description
 /// ----------------------------------------|------------------------------------
+/// nk_layout_get_min_row_height            | Get the currently used minimum row height
 /// nk_layout_set_min_row_height            | Set the currently used minimum row height to a specified value
 /// nk_layout_reset_min_row_height          | Resets the currently used minimum row height to font height
 /// nk_layout_widget_bounds                 | Calculates current width a static layout row can fit inside a window
@@ -2055,6 +2057,18 @@ NK_API void nk_window_show_if(struct nk_context*, const char *name, enum nk_show
 /// nk_layout_space_rect_to_screen          | Converts rectangle from nk_layout_space coordinate space into screen space
 /// nk_layout_space_rect_to_local           | Converts rectangle from screen space into nk_layout_space coordinates
 */
+/*/// #### nk_layout_get_min_row_height
+/// Gets the currently used minimum row height.
+///
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~c
+/// float nk_layout_get_min_row_height(struct nk_context*);
+/// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+///
+/// Parameter   | Description
+/// ------------|-----------------------------------------------------------
+/// __ctx__     | Must point to an previously initialized `nk_context` struct after call `nk_begin_xxx`
+*/
+NK_API float nk_layout_get_min_row_height(struct nk_context *ctx);
 /*/// #### nk_layout_set_min_row_height
 /// Sets the currently used minimum row height.
 /// !!! WARNING
@@ -2882,6 +2896,11 @@ NK_API void nk_spacing(struct nk_context*, int cols);
  *                                  TEXT
  *
  * ============================================================================= */
+
+#define COLORDELIM '#'
+#define LINKDELIMSTART '['
+#define LINKDELIMEND ']'
+
 enum nk_text_align {
     NK_TEXT_ALIGN_LEFT        = 0x01,
     NK_TEXT_ALIGN_CENTERED    = 0x02,
@@ -2899,10 +2918,12 @@ NK_API void nk_text(struct nk_context*, const char*, int, nk_flags);
 NK_API void nk_text_colored(struct nk_context*, const char*, int, nk_flags, struct nk_color);
 NK_API void nk_text_wrap(struct nk_context*, const char*, int);
 NK_API void nk_text_wrap_colored(struct nk_context*, const char*, int, struct nk_color);
+NK_API void nk_text_wrap_coded(struct nk_context*, const char*, int, struct nk_color, struct nk_text_link*, int&);
 NK_API void nk_label(struct nk_context*, const char*, nk_flags align);
 NK_API void nk_label_colored(struct nk_context*, const char*, nk_flags align, struct nk_color);
 NK_API void nk_label_wrap(struct nk_context*, const char*);
 NK_API void nk_label_colored_wrap(struct nk_context*, const char*, struct nk_color);
+NK_API void nk_label_coded_wrap(struct nk_context*, const char*, struct nk_color, struct nk_text_link*, int&);
 NK_API void nk_image(struct nk_context*, struct nk_image);
 NK_API void nk_image_color(struct nk_context*, struct nk_image, struct nk_color);
 #ifdef NK_INCLUDE_STANDARD_VARARGS
@@ -4133,6 +4154,12 @@ struct nk_text_edit {
     struct nk_text_undo_state undo;
 };
 
+struct nk_text_link {
+	char keyword[64];
+	int keyword_len = 0;
+	struct nk_rect bounds;
+};
+
 /* filter function */
 NK_API nk_bool nk_filter_default(const struct nk_text_edit*, nk_rune unicode);
 NK_API nk_bool nk_filter_ascii(const struct nk_text_edit*, nk_rune unicode);
@@ -5198,21 +5225,25 @@ struct nk_panel {
 
 struct nk_table;
 enum nk_window_flags {
-    NK_WINDOW_PRIVATE       = NK_FLAG(11),
-    NK_WINDOW_DYNAMIC       = NK_WINDOW_PRIVATE,
-    /* special window type growing up in height while being filled to a certain maximum height */
-    NK_WINDOW_ROM           = NK_FLAG(12),
-    /* sets window widgets into a read only mode and does not allow input changes */
-    NK_WINDOW_NOT_INTERACTIVE = NK_WINDOW_ROM|NK_WINDOW_NO_INPUT,
-    /* prevents all interaction caused by input to either window or widgets inside */
-    NK_WINDOW_HIDDEN        = NK_FLAG(13),
-    /* Hides window and stops any window interaction and drawing */
-    NK_WINDOW_CLOSED        = NK_FLAG(14),
-    /* Directly closes and frees the window at the end of the frame */
-    NK_WINDOW_MINIMIZED     = NK_FLAG(15),
-    /* marks the window as minimized */
-    NK_WINDOW_REMOVE_ROM    = NK_FLAG(16)
-    /* Removes read only mode at the end of the window */
+	NK_WINDOW_PRIVATE         = NK_FLAG(11),
+	NK_WINDOW_DYNAMIC         = NK_WINDOW_PRIVATE,
+	/* special window type growing up in height while being filled to a certain maximum height */
+	NK_WINDOW_ROM             = NK_FLAG(12),
+	/* sets window widgets into a read only mode and does not allow input changes */
+	NK_WINDOW_NOT_INTERACTIVE = NK_WINDOW_ROM|NK_WINDOW_NO_INPUT,
+	/* prevents all interaction caused by input to either window or widgets inside */
+	NK_WINDOW_HIDDEN          = NK_FLAG(13),
+	/* Hides window and stops any window interaction and drawing */
+	NK_WINDOW_CLOSED          = NK_FLAG(14),
+	/* Directly closes and frees the window at the end of the frame */
+	NK_WINDOW_MINIMIZED       = NK_FLAG(15),
+	/* marks the window as minimized */
+	NK_WINDOW_REMOVE_ROM      = NK_FLAG(16),
+	/* Removes read only mode at the end of the window */
+	NK_WINDOW_DYNAMIC_HEIGHT  = NK_FLAG(17),
+	/* Makes the window grow to fit the panels inside. Requires NK_WINDOW_MOVABLE and can't be used with NK_WINDOW_SCALABLE */
+	NK_WINDOW_FOCUS_IF_LATEST = NK_FLAG(18)
+	/* Keeps the new focus to this window even if it spawned outside the current active window */
 };
 
 struct nk_popup_state {

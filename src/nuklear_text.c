@@ -52,43 +52,293 @@ nk_widget_text(struct nk_command_buffer *o, struct nk_rect b,
     nk_draw_text(o, label, (const char*)string, len, f, t->background, t->text);
 }
 NK_LIB void
-nk_widget_text_wrap(struct nk_command_buffer *o, struct nk_rect b,
-    const char *string, int len, const struct nk_text *t,
-    const struct nk_user_font *f)
+nk_widget_text_wrap(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b,
+	const char *string, int len, const struct nk_text *t,
+	const struct nk_user_font *f)
 {
-    float width;
-    int glyphs = 0;
-    int fitting = 0;
-    int done = 0;
-    struct nk_rect line;
-    struct nk_text text;
-    NK_INTERN nk_rune seperator[] = {' '};
+	float width;
+	int glyphs = 0;
+	int fitting = 0;
+	int done = 0;
+	int rows = 0;
+	struct nk_rect line;
+	struct nk_text text;
+	NK_INTERN nk_rune seperator[] = {' '};
 
-    NK_ASSERT(o);
-    NK_ASSERT(t);
-    if (!o || !t) return;
+	NK_ASSERT(o);
+	NK_ASSERT(t);
+	if (!o || !t) return;
 
-    text.padding = nk_vec2(0,0);
-    text.background = t->background;
-    text.text = t->text;
+	text.padding = nk_vec2(0,0);
+	text.background = t->background;
+	text.text = t->text;
 
-    b.w = NK_MAX(b.w, 2 * t->padding.x);
-    b.h = NK_MAX(b.h, 2 * t->padding.y);
-    b.h = b.h - 2 * t->padding.y;
+	b.w = NK_MAX(b.w, 2 * t->padding.x);
+	b.h = NK_MAX(b.h, 2 * t->padding.y);
+	b.h = b.h - 2 * t->padding.y;
 
-    line.x = b.x + t->padding.x;
-    line.y = b.y + t->padding.y;
-    line.w = b.w - 2 * t->padding.x;
-    line.h = 2 * t->padding.y + f->height;
+	line.x = b.x + t->padding.x;
+	line.y = b.y + t->padding.y;
+	line.w = b.w - 2 * t->padding.x;
+	line.h = 2 * t->padding.y + f->height;
 
-    fitting = nk_text_clamp(f, string, len, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
-    while (done < len) {
-        if (!fitting || line.y + line.h >= (b.y + b.h)) break;
-        nk_widget_text(o, line, &string[done], fitting, &text, NK_TEXT_LEFT, f);
-        done += fitting;
-        line.y += f->height + 2 * t->padding.y;
-        fitting = nk_text_clamp(f, &string[done], len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
-    }
+	fitting = nk_text_clamp(f, string, len, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
+	while (done < len) {
+		if (!fitting) break;
+
+		rows++;
+
+		nk_bool newline_found = nk_false;
+		for (int i = 0; i < fitting; i++) {
+			if (string[done + i] == '\n') {
+				fitting = i;
+				newline_found = nk_true;
+			}
+		}
+
+		nk_widget_text(o, line, &string[done], fitting, &text, NK_TEXT_LEFT, f);
+
+		if (newline_found) {
+			fitting++;
+		}
+
+		done += fitting;
+		line.y += f->height + 2 * t->padding.y;
+		fitting = nk_text_clamp(f, &string[done], len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
+	}
+	nk_layout_extend_label_height(ctx, rows);
+}
+NK_LIB void
+nk_widget_text_wrap_coded(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b,
+	const char *string, int len, const struct nk_text *t, const struct nk_user_font *f,
+	struct nk_text_link* links, int& num_links)
+{
+	float width;
+	int glyphs = 0;
+	int fitting = 0;
+	int done = 0;
+	struct nk_rect line;
+	struct nk_text text;
+	NK_INTERN nk_rune seperator[] = {' '};
+
+	NK_ASSERT(o);
+	NK_ASSERT(t);
+	if (!o || !t) return;
+
+	text.padding = nk_vec2(0,0);
+	text.background = t->background;
+	text.text = t->text;
+	nk_color defaultColor = t->text;
+
+	b.w = NK_MAX(b.w, 2 * t->padding.x);
+	b.h = NK_MAX(b.h, 2 * t->padding.y);
+	b.h = b.h - 2 * t->padding.y;
+
+	line.x = b.x + t->padding.x;
+	line.y = b.y + t->padding.y;
+	line.w = b.w - 2 * t->padding.x;
+	line.h = 2 * t->padding.y + f->height;
+
+	char clean_text[len];
+	nk_text_remove_code(string, len, clean_text);
+
+	int rows = 0;
+	int tags_found = 0;
+	int colors_found = 0;
+	int hex_code_len = 6;
+	nk_bool end_of_color = nk_true;
+	nk_bool link_found = nk_false;
+
+	/* Find the the number of characters of the string that can fit in the width of the window, only separating at spaces */
+	fitting = nk_text_clamp(f, clean_text, len, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
+	while (done < len) {
+		/* if fitting is 0 or the height of the allocated space of the row has been reached: break */ 
+		if (!fitting) break;
+
+		rows++;
+
+		nk_bool newline_found = nk_false;
+		/* Find the first newline character and set the variable for how much fits on this row to it */
+		for (int i = 0; i < fitting; i++) {
+			if (clean_text[done + i] == '\n') {
+				fitting = i;
+				newline_found = nk_true;
+			}
+		}
+		
+		int row_done = 0;
+		float text_width = 0;
+		int code_offset = colors_found * hex_code_len + tags_found;
+		/* Find the colordelim characters and color the text according to the hex color */
+		/* Example with colordelim character set as '#': "This #FFFFFFword# will be colored white" */
+		/* Find the linkdelim characters and calculate the bounds of the words they surround */
+		/* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
+		for (int i = done; i <= done + fitting; i++) {
+			if (string[i + code_offset] == COLORDELIM) {
+				text_width = f->width(f->userdata, f->height, &clean_text[done], fitting - (fitting - row_done));
+				struct nk_rect sub_line = line;
+				sub_line.x += text_width;
+
+				nk_widget_text(o, sub_line, &clean_text[done + row_done], i - done - row_done, &text, NK_TEXT_LEFT, f);
+
+				row_done = i - done;
+
+				nk_color textColor = defaultColor;
+				if (end_of_color) {
+					end_of_color = nk_false;
+					tags_found++;
+					colors_found++;
+					textColor = nk_rgb_hex(&string[i + code_offset + 1]);
+				} else {
+					end_of_color = nk_true;
+					tags_found++;
+				}
+
+				text.text = textColor;
+				i--;
+			} else if (string[i + code_offset] == LINKDELIMSTART) {
+				link_found = nk_true;
+				tags_found++;
+
+				text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
+				struct nk_rect sub_line = line;
+				sub_line.x += text_width;
+
+				links[num_links].bounds.x = sub_line.x;
+				links[num_links].bounds.y = sub_line.y;
+				links[num_links].bounds.h = sub_line.h;
+
+				i--;
+			} else if (string[i + code_offset] == LINKDELIMEND) {
+				link_found = nk_false;
+				tags_found++;
+
+				text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
+				struct nk_rect sub_line = line;
+				sub_line.x += text_width;
+
+				links[num_links].bounds.w = sub_line.x - links[num_links].bounds.x;
+				links[num_links].keyword[links[num_links].keyword_len] = '\0';
+
+				num_links++;
+				i--;
+			} else if (link_found) {
+				links[num_links].keyword[links[num_links].keyword_len] = string[i + code_offset];
+				links[num_links].keyword_len++;
+			}
+			code_offset = colors_found * hex_code_len + tags_found;
+		}
+		if (row_done != fitting) {
+			text_width = f->width(f->userdata, f->height, &clean_text[done], fitting - (fitting - row_done));
+			struct nk_rect sub_line = line;
+			sub_line.x += text_width;
+			nk_widget_text(o, sub_line, &clean_text[done + row_done], fitting - row_done, &text, NK_TEXT_LEFT, f);
+		}
+
+		/* Skip drawing the newline character */
+		if (newline_found) {
+			fitting++;
+		}
+
+		done += fitting;
+		line.y += f->height + 2 * t->padding.y;
+		fitting = nk_text_clamp(f, &clean_text[done], len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
+	}
+	nk_layout_extend_label_height(ctx, rows);
+}
+NK_LIB void
+nk_text_remove_hex_colors(const char* text, int &len, char *hexFreeText)
+{
+	int start_tags_found = 0;
+	int end_tags_found = 0;
+	int hex_code_len = 7;
+	nk_bool end_of_color = nk_true;
+
+	for (int i = 0; i < len; i++) {
+		int hexcode_offset = start_tags_found * hex_code_len + end_tags_found;
+		if (text[i] != COLORDELIM) {
+			hexFreeText[i - hexcode_offset] = text[i];
+		} else if (end_of_color) {
+			end_of_color = nk_false;
+			start_tags_found++;
+			i += hex_code_len - 1;
+		} else {
+			end_of_color = nk_true;
+			end_tags_found++;
+		}
+	}
+	len = len - start_tags_found * hex_code_len - end_tags_found;
+	hexFreeText[len] = '\0';
+}
+NK_LIB void
+nk_text_extract_links(const char* text, int &len, char *linkFreeText, struct nk_text_link *links, int& num_links)
+{
+	int start_tags_found = 0;
+	int end_tags_found = 0;
+	int keyword_len = 0;
+	nk_bool end_of_link = nk_true;
+
+	for (int i = 0; i < len; i++) {
+		int linkTagsOffset = start_tags_found + end_tags_found + keyword_len;
+		if (text[i] != LINKDELIMSTART && text[i] != LINKDELIMEND) {
+			linkFreeText[i - linkTagsOffset] = text[i];
+		} else if (end_of_link) {
+			end_of_link = nk_false;
+			start_tags_found++;
+		} else {
+			end_of_link = nk_true;
+			end_tags_found++;
+
+			keyword_len += 2;
+			i += 2;
+			while (text[i] != ')')
+			{
+				links[num_links].keyword[links[num_links].keyword_len] = text[i];
+				links[num_links].keyword_len++;
+				keyword_len++;
+				i++;
+			}
+			links[num_links].keyword[links[num_links].keyword_len] = '\0';
+			num_links++;
+		}
+	}
+	len = len - start_tags_found - end_tags_found - keyword_len;
+	linkFreeText[len] = '\0';
+}
+NK_LIB
+void nk_text_remove_code(const char* text, int &len, char *clean_text)
+{
+	int start_tags_found = 0;
+	int end_tags_found = 0;
+	int colors_found = 0;
+	int hex_code_len = 6;
+	nk_bool end_of_color = nk_true;
+	nk_bool link_found = nk_false;
+
+	int code_offset = 0;
+	for (int i = 0; i < len; i++) {
+		if (text[i] != COLORDELIM && text[i] != LINKDELIMSTART && text[i] != LINKDELIMEND) {
+			clean_text[i - code_offset] = text[i];
+		} else if (end_of_color && text[i] == COLORDELIM) {
+			end_of_color = nk_false;
+			start_tags_found++;
+			colors_found++;
+			i += hex_code_len;
+		} else if (text[i] == COLORDELIM) {
+			end_of_color = nk_true;
+			end_tags_found++;
+		} else if (text[i] == LINKDELIMSTART) {
+			link_found = nk_true;
+			start_tags_found++;
+		} else if (text[i] == LINKDELIMEND) {
+			link_found = nk_false;
+			end_tags_found++;
+		}
+		code_offset = colors_found * hex_code_len + start_tags_found + end_tags_found;
+	}
+
+	len = len - code_offset;
+	clean_text[len] = '\0';
 }
 NK_API void
 nk_text_colored(struct nk_context *ctx, const char *str, int len,
@@ -119,30 +369,59 @@ nk_text_colored(struct nk_context *ctx, const char *str, int len,
 }
 NK_API void
 nk_text_wrap_colored(struct nk_context *ctx, const char *str,
-    int len, struct nk_color color)
+	int len, struct nk_color color)
 {
-    struct nk_window *win;
-    const struct nk_style *style;
+	struct nk_window *win;
+	const struct nk_style *style;
 
-    struct nk_vec2 item_padding;
-    struct nk_rect bounds;
-    struct nk_text text;
+	struct nk_vec2 item_padding;
+	struct nk_rect bounds;
+	struct nk_text text;
 
-    NK_ASSERT(ctx);
-    NK_ASSERT(ctx->current);
-    NK_ASSERT(ctx->current->layout);
-    if (!ctx || !ctx->current || !ctx->current->layout) return;
+	NK_ASSERT(ctx);
+	NK_ASSERT(ctx->current);
+	NK_ASSERT(ctx->current->layout);
+	if (!ctx || !ctx->current || !ctx->current->layout) return;
 
-    win = ctx->current;
-    style = &ctx->style;
-    nk_panel_alloc_space(&bounds, ctx);
-    item_padding = style->text.padding;
+	win = ctx->current;
+	style = &ctx->style;
+	nk_panel_alloc_space(&bounds, ctx);
+	item_padding = style->text.padding;
 
-    text.padding.x = item_padding.x;
-    text.padding.y = item_padding.y;
-    text.background = style->window.background;
-    text.text = color;
-    nk_widget_text_wrap(&win->buffer, bounds, str, len, &text, style->font);
+	text.padding.x = item_padding.x;
+	text.padding.y = item_padding.y;
+	text.background = style->window.background;
+	text.text = color;
+
+	nk_widget_text_wrap(ctx, &win->buffer, bounds, str, len, &text, style->font);
+}
+NK_API void
+nk_text_wrap_coded(struct nk_context *ctx, const char *str,
+	int len, struct nk_color color, struct nk_text_link *links, int &num_links)
+{
+	struct nk_window *win;
+	const struct nk_style *style;
+
+	struct nk_vec2 item_padding;
+	struct nk_rect bounds;
+	struct nk_text text;
+
+	NK_ASSERT(ctx);
+	NK_ASSERT(ctx->current);
+	NK_ASSERT(ctx->current->layout);
+	if (!ctx || !ctx->current || !ctx->current->layout) return;
+
+	win = ctx->current;
+	style = &ctx->style;
+	nk_panel_alloc_space(&bounds, ctx);
+	item_padding = style->text.padding;
+
+	text.padding.x = item_padding.x;
+	text.padding.y = item_padding.y;
+	text.background = style->window.background;
+	text.text = color;
+
+	nk_widget_text_wrap_coded(ctx, &win->buffer, bounds, str, len, &text, style->font, links, num_links);
 }
 #ifdef NK_INCLUDE_STANDARD_VARARGS
 NK_API void
@@ -290,3 +569,8 @@ nk_label_colored_wrap(struct nk_context *ctx, const char *str, struct nk_color c
     nk_text_wrap_colored(ctx, str, nk_strlen(str), color);
 }
 
+NK_API void
+nk_label_coded_wrap(struct nk_context *ctx, const char *str, struct nk_color color, struct nk_text_link *links, int &num_links)
+{
+	nk_text_wrap_coded(ctx, str, nk_strlen(str), color, links, num_links);
+}

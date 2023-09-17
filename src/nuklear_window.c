@@ -271,7 +271,7 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
                 nk_insert_window(ctx, iter, NK_INSERT_BACK);
             }
         } else {
-            if (!iter && ctx->end != win) {
+            if (!iter && ctx->end != win && !(win->flags & NK_WINDOW_FOCUS_IF_LATEST)) {
                 if (!(win->flags & NK_WINDOW_BACKGROUND)) {
                     /* current window is active in that position so transfer to top
                      * at the highest priority in stack */
@@ -295,20 +295,33 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
 NK_API void
 nk_end(struct nk_context *ctx)
 {
-    struct nk_panel *layout;
-    NK_ASSERT(ctx);
-    NK_ASSERT(ctx->current && "if this triggers you forgot to call `nk_begin`");
-    if (!ctx || !ctx->current)
-        return;
+    struct nk_window *win;
+	struct nk_panel *layout;
+	struct nk_style *style;
 
-    layout = ctx->current->layout;
-    if (!layout || (layout->type == NK_PANEL_WINDOW && (ctx->current->flags & NK_WINDOW_HIDDEN))) {
-        ctx->current = 0;
-        return;
-    }
-    nk_panel_end(ctx);
-    nk_free_panel(ctx, ctx->current->layout);
-    ctx->current = 0;
+	NK_ASSERT(ctx);
+	NK_ASSERT(ctx->current && "if this triggers you forgot to call `nk_begin`");
+	if (!ctx || !ctx->current)
+		return;
+
+	win = ctx->current;
+	style = &ctx->style;
+	layout = ctx->current->layout;
+	if (!layout || (layout->type == NK_PANEL_WINDOW && (ctx->current->flags & NK_WINDOW_HIDDEN))) {
+		ctx->current = 0;
+		return;
+	}
+	
+	nk_panel_end(ctx);
+	nk_free_panel(ctx, ctx->current->layout);
+
+	if (layout->type == NK_PANEL_WINDOW && !(win->flags & NK_WINDOW_SCALABLE) && (win->flags & NK_WINDOW_DYNAMIC_HEIGHT)) {
+		const float window_padding = style->window.padding.y;
+		const float total_panel_height = layout->at_y - win->bounds.y + window_padding;
+		win->bounds.h = total_panel_height;
+	}
+	
+	ctx->current = 0;
 }
 NK_API struct nk_rect
 nk_window_get_bounds(const struct nk_context *ctx)
