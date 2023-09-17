@@ -231,7 +231,7 @@ struct nk_draw_command;
 struct nk_convert_config;
 struct nk_style_item;
 struct nk_text_edit;
-struct nk_text_link;
+struct nk_label_link;
 struct nk_draw_list;
 struct nk_user_font;
 struct nk_panel;
@@ -2918,12 +2918,12 @@ NK_API void nk_text(struct nk_context*, const char*, int, nk_flags);
 NK_API void nk_text_colored(struct nk_context*, const char*, int, nk_flags, struct nk_color);
 NK_API void nk_text_wrap(struct nk_context*, const char*, int);
 NK_API void nk_text_wrap_colored(struct nk_context*, const char*, int, struct nk_color);
-NK_API void nk_text_wrap_coded(struct nk_context*, const char*, int, struct nk_color, struct nk_text_link*, int&);
+NK_API void nk_text_wrap_coded(struct nk_context*, const char*, int, struct nk_color, struct nk_label_link*, int*);
 NK_API void nk_label(struct nk_context*, const char*, nk_flags align);
 NK_API void nk_label_colored(struct nk_context*, const char*, nk_flags align, struct nk_color);
 NK_API void nk_label_wrap(struct nk_context*, const char*);
 NK_API void nk_label_colored_wrap(struct nk_context*, const char*, struct nk_color);
-NK_API void nk_label_coded_wrap(struct nk_context*, const char*, struct nk_color, struct nk_text_link*, int&);
+NK_API void nk_label_coded_wrap(struct nk_context*, const char*, struct nk_color, struct nk_label_link*, int*);
 NK_API void nk_image(struct nk_context*, struct nk_image);
 NK_API void nk_image_color(struct nk_context*, struct nk_image, struct nk_color);
 #ifdef NK_INCLUDE_STANDARD_VARARGS
@@ -4154,9 +4154,9 @@ struct nk_text_edit {
     struct nk_text_undo_state undo;
 };
 
-struct nk_text_link {
+struct nk_label_link {
 	char keyword[64];
-	int keyword_len = 0;
+	int keyword_len;
 	struct nk_rect bounds;
 };
 

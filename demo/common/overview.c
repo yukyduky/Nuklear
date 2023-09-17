@@ -148,6 +148,25 @@ overview(struct nk_context *ctx)
                 nk_label_colored(ctx, "Yellow text", NK_TEXT_LEFT, nk_rgb(255,255,0));
                 nk_text(ctx, "Text without /0", 15, NK_TEXT_RIGHT);
 
+				const struct nk_input *in = &ctx->input;
+                struct nk_label_link links[10];
+                int num_links = 0;
+
+                nk_layout_row_dynamic(ctx, 0, 1);
+                nk_label_coded_wrap(ctx, "This is #00FFFFanother longer line that displays# not only [#FFFF00wrapping#] but also [#1bff00colors#] and words that are '[#FF00FFlinked#]' to tooltips or whatever else you want to do like \n\n\n[#FF00FFnewlines#].", nk_rgb(200, 200, 200), links, &num_links);
+
+
+                if (nk_input_is_mouse_hovering_rect(in, links[0].bounds))
+					nk_tooltip(ctx, "Wrapping is when text starts a new row after it reaches the edge of the allowed space");
+                if (nk_input_is_mouse_hovering_rect(in, links[1].bounds))
+					nk_tooltip(ctx, "This is green!");
+                if (nk_input_is_mouse_hovering_rect(in, links[2].bounds))
+					nk_tooltip(ctx, "This doesn't have to be used for just tooltips.");
+                if (nk_input_is_mouse_hovering_rect(in, links[3].bounds))
+					nk_tooltip(ctx, "Newline: \\n");
+                
+
+
                 nk_layout_row_static(ctx, 100, 200, 1);
                 nk_label_wrap(ctx, "This is a very long line to hopefully get this text to be wrapped into multiple lines to show line wrapping");
                 nk_layout_row_dynamic(ctx, 100, 1);
