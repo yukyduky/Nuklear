@@ -234,9 +234,7 @@ struct nk_text {
 };
 NK_LIB void nk_widget_text(struct nk_command_buffer *o, struct nk_rect b, const char *string, int len, const struct nk_text *t, nk_flags a, const struct nk_user_font *f);
 NK_LIB void nk_widget_text_wrap(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b, const char *string, int len, const struct nk_text *t, const struct nk_user_font *f);
-NK_LIB void nk_widget_text_wrap_coded(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b,	const char *string, int len, const struct nk_text *t,	const struct nk_user_font *f, struct nk_text_link *links, int* numLinks);
-NK_LIB void nk_text_remove_hex_colors(const char* text, int* len, char *hexFreeText);
-NK_LIB void nk_text_extract_links(const char* text, int* len, char *linkFreeText, struct nk_text_link *links, int* numLinks);
+NK_LIB void nk_widget_text_wrap_coded(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b, const char *string, int len, const struct nk_text *t, const struct nk_user_font *f, struct nk_label_link *links, int *num_links, struct nk_label_icon *icons, int *num_icons);
 NK_LIB void nk_text_remove_code(const char* text, int* len, char *cleanText);
 
 /* button */
