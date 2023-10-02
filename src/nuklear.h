@@ -2868,7 +2868,8 @@ NK_API void nk_list_view_end(struct nk_list_view*);
 enum nk_widget_layout_states {
     NK_WIDGET_INVALID, /* The widget cannot be seen and is completely out of view */
     NK_WIDGET_VALID, /* The widget is completely inside the window and can be updated and drawn */
-    NK_WIDGET_ROM /* The widget is partially visible and cannot be updated */
+    NK_WIDGET_ROM, /* The widget is partially visible and cannot be updated */
+    NK_WIDGET_DISABLED /* The widget is manually disabled and acts like NK_WIDGET_ROM */
 };
 enum nk_widget_states {
     NK_WIDGET_STATE_MODIFIED    = NK_FLAG(1),
@@ -2891,6 +2892,8 @@ NK_API nk_bool nk_widget_is_hovered(struct nk_context*);
 NK_API nk_bool nk_widget_is_mouse_clicked(struct nk_context*, enum nk_buttons);
 NK_API nk_bool nk_widget_has_mouse_click_down(struct nk_context*, enum nk_buttons, nk_bool down);
 NK_API void nk_spacing(struct nk_context*, int cols);
+NK_API void nk_widget_disable_begin(struct nk_context* ctx);
+NK_API void nk_widget_disable_end(struct nk_context* ctx);
 /* =============================================================================
  *
  *                                  TEXT
@@ -2902,7 +2905,8 @@ NK_API void nk_spacing(struct nk_context*, int cols);
 #define LINK_DELIM_END ']'
 #define LINK_KEY_DELIM_START '('
 #define LINK_KEY_DELIM_END ')'
-#define ICON_DELIM '$'
+#define ICON_DELIM_START '{'
+#define ICON_DELIM_END '}'
 
 enum nk_text_align {
     NK_TEXT_ALIGN_LEFT        = 0x01,
@@ -5310,6 +5314,7 @@ struct nk_window {
     struct nk_popup_state popup;
     struct nk_edit_state edit;
     unsigned int scrolled;
+    nk_bool widgets_disabled;
 
     struct nk_table *tables;
     unsigned int table_count;
@@ -5459,6 +5464,8 @@ struct nk_context {
 /* public: can be accessed freely */
     struct nk_input input;
     struct nk_style style;
+    struct nk_style style_disabled;
+    struct nk_style style_enabled;
     struct nk_buffer memory;
     struct nk_clipboard clip;
     nk_flags last_widget_state;

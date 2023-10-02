@@ -95,6 +95,7 @@ nk_free(struct nk_context *ctx)
 
     nk_zero(&ctx->input, sizeof(ctx->input));
     nk_zero(&ctx->style, sizeof(ctx->style));
+    nk_zero(&ctx->style_enabled, sizeof(ctx->style_enabled));
     nk_zero(&ctx->memory, sizeof(ctx->memory));
 
     ctx->seq = 0;

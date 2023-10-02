@@ -175,6 +175,8 @@ nk_widget(struct nk_rect *bounds, const struct nk_context *ctx)
     nk_unify(&v, &c, bounds->x, bounds->y, bounds->x + bounds->w, bounds->y + bounds->h);
     if (!NK_INTERSECT(c.x, c.y, c.w, c.h, bounds->x, bounds->y, bounds->w, bounds->h))
         return NK_WIDGET_INVALID;
+    if (win->widgets_disabled)
+        return NK_WIDGET_DISABLED;
     if (!NK_INBOX(in->mouse.pos.x, in->mouse.pos.y, v.x, v.y, v.w, v.h))
         return NK_WIDGET_ROM;
     return NK_WIDGET_VALID;
@@ -227,4 +229,35 @@ nk_spacing(struct nk_context *ctx, int cols)
             nk_panel_alloc_space(&none, ctx);
     } layout->row.index = index;
 }
+NK_API void
+nk_widget_disable_begin(struct nk_context* ctx)
+{
+    struct nk_window* win;
 
+    NK_ASSERT(ctx);
+    NK_ASSERT(ctx->current);
+
+    if (!ctx || !ctx->current)
+        return;
+
+    win = ctx->current;
+    ctx->style = ctx->style_disabled;
+
+    win->widgets_disabled = nk_true;
+}
+NK_API void
+nk_widget_disable_end(struct nk_context* ctx)
+{
+    struct nk_window* win;
+
+    NK_ASSERT(ctx);
+    NK_ASSERT(ctx->current);
+
+    if (!ctx || !ctx->current)
+        return;
+
+    win = ctx->current;
+    ctx->style = ctx->style_enabled;
+
+    win->widgets_disabled = nk_false;
+}

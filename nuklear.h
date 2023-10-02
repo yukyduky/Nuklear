@@ -3090,7 +3090,8 @@ NK_API void nk_list_view_end(struct nk_list_view*);
 enum nk_widget_layout_states {
     NK_WIDGET_INVALID, /* The widget cannot be seen and is completely out of view */
     NK_WIDGET_VALID, /* The widget is completely inside the window and can be updated and drawn */
-    NK_WIDGET_ROM /* The widget is partially visible and cannot be updated */
+    NK_WIDGET_ROM, /* The widget is partially visible and cannot be updated */
+    NK_WIDGET_DISABLED /* The widget is manually disabled and acts like NK_WIDGET_ROM */
 };
 enum nk_widget_states {
     NK_WIDGET_STATE_MODIFIED    = NK_FLAG(1),
@@ -3113,6 +3114,8 @@ NK_API nk_bool nk_widget_is_hovered(struct nk_context*);
 NK_API nk_bool nk_widget_is_mouse_clicked(struct nk_context*, enum nk_buttons);
 NK_API nk_bool nk_widget_has_mouse_click_down(struct nk_context*, enum nk_buttons, nk_bool down);
 NK_API void nk_spacing(struct nk_context*, int cols);
+NK_API void nk_widget_disable_begin(struct nk_context* ctx);
+NK_API void nk_widget_disable_end(struct nk_context* ctx);
 /* =============================================================================
  *
  *                                  TEXT
@@ -3124,7 +3127,8 @@ NK_API void nk_spacing(struct nk_context*, int cols);
 #define LINK_DELIM_END ']'
 #define LINK_KEY_DELIM_START '('
 #define LINK_KEY_DELIM_END ')'
-#define ICON_DELIM '$'
+#define ICON_DELIM_START '{'
+#define ICON_DELIM_END '}'
 
 enum nk_text_align {
     NK_TEXT_ALIGN_LEFT        = 0x01,
@@ -5532,6 +5536,7 @@ struct nk_window {
     struct nk_popup_state popup;
     struct nk_edit_state edit;
     unsigned int scrolled;
+    nk_bool widgets_disabled;
 
     struct nk_table *tables;
     unsigned int table_count;
@@ -5681,6 +5686,8 @@ struct nk_context {
 /* public: can be accessed freely */
     struct nk_input input;
     struct nk_style style;
+    struct nk_style style_disabled;
+    struct nk_style style_enabled;
     struct nk_buffer memory;
     struct nk_clipboard clip;
     nk_flags last_widget_state;
@@ -18771,6 +18778,249 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     win->contextual_padding = nk_vec2(4,4);
     win->menu_padding = nk_vec2(4,4);
     win->tooltip_padding = nk_vec2(4,4);
+
+
+    /* ---- Disabled style ---- */
+
+    ctx->style_enabled = *style;
+    ctx->style_disabled = *style;
+    style = &ctx->style_disabled;
+    float grey_factor = 0.4f;
+
+        /* default button */
+    button = &style->button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->border_color.r *= grey_factor;
+    button->border_color.g *= grey_factor;
+    button->border_color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
+
+    /* contextual button */
+    button = &style->contextual_button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->border_color.r *= grey_factor;
+    button->border_color.g *= grey_factor;
+    button->border_color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
+
+    /* menu button */
+    button = &style->menu_button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->border_color.r *= grey_factor;
+    button->border_color.g *= grey_factor;
+    button->border_color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
+
+    /* checkbox toggle */
+    toggle = &style->checkbox;
+    toggle->normal.data.color.r *= grey_factor;
+    toggle->normal.data.color.g *= grey_factor;
+    toggle->normal.data.color.b *= grey_factor;
+    toggle->cursor_normal.data.color.r *= grey_factor;
+    toggle->cursor_normal.data.color.g *= grey_factor;
+    toggle->cursor_normal.data.color.b *= grey_factor;
+    toggle->text_normal.r *= grey_factor;
+    toggle->text_normal.g *= grey_factor;
+    toggle->text_normal.b *= grey_factor;
+
+    /* option toggle */
+    toggle = &style->option;
+    toggle->normal.data.color.r *= grey_factor;
+    toggle->normal.data.color.g *= grey_factor;
+    toggle->normal.data.color.b *= grey_factor;
+    toggle->cursor_normal.data.color.r *= grey_factor;
+    toggle->cursor_normal.data.color.g *= grey_factor;
+    toggle->cursor_normal.data.color.b *= grey_factor;
+    toggle->text_normal.r *= grey_factor;
+    toggle->text_normal.g *= grey_factor;
+    toggle->text_normal.b *= grey_factor;
+
+    /* selectable */
+    select = &style->selectable;
+    select->normal.data.color.r *= grey_factor;
+    select->normal.data.color.g *= grey_factor;
+    select->normal.data.color.b *= grey_factor;
+    select->normal_active.data.color.r *= grey_factor;
+    select->normal_active.data.color.g *= grey_factor;
+    select->normal_active.data.color.b *= grey_factor;
+    select->text_normal.r *= grey_factor;
+    select->text_normal.g *= grey_factor;
+    select->text_normal.b *= grey_factor;
+
+    /* slider */
+    slider = &style->slider;
+    slider->normal = nk_style_item_hide();
+    slider->bar_normal.r *= grey_factor;
+    slider->bar_normal.g *= grey_factor;
+    slider->bar_normal.b *= grey_factor;
+    slider->cursor_normal.data.color.r *= grey_factor;
+    slider->cursor_normal.data.color.g *= grey_factor;
+    slider->cursor_normal.data.color.b *= grey_factor;
+
+    /* slider buttons */
+    button = &style->slider.inc_button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->border_color.r *= grey_factor;
+    button->border_color.g *= grey_factor;
+    button->border_color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
+
+    /* progressbar */
+    prog = &style->progress;
+    prog->normal.data.color.r *= grey_factor;
+    prog->normal.data.color.g *= grey_factor;
+    prog->normal.data.color.b *= grey_factor;
+    prog->cursor_normal.data.color.r *= grey_factor;
+    prog->cursor_normal.data.color.g *= grey_factor;
+    prog->cursor_normal.data.color.b *= grey_factor;
+
+    /* edit */
+    edit = &style->edit;
+    edit->normal.data.color.r *= grey_factor;
+    edit->normal.data.color.g *= grey_factor;
+    edit->normal.data.color.b *= grey_factor;
+    edit->active.data.color.r *= grey_factor;
+    edit->active.data.color.g *= grey_factor;
+    edit->active.data.color.b *= grey_factor;
+    edit->cursor_normal.r *= grey_factor;
+    edit->cursor_normal.g *= grey_factor;
+    edit->cursor_normal.b *= grey_factor;
+    edit->cursor_text_normal.r *= grey_factor;
+    edit->cursor_text_normal.g *= grey_factor;
+    edit->cursor_text_normal.b *= grey_factor;
+    edit->text_normal.r *= grey_factor;
+    edit->text_normal.g *= grey_factor;
+    edit->text_normal.b *= grey_factor;
+    edit->text_active.r *= grey_factor;
+    edit->text_active.g *= grey_factor;
+    edit->text_active.b *= grey_factor;
+    edit->selected_normal.r *= grey_factor;
+    edit->selected_normal.g *= grey_factor;
+    edit->selected_normal.b *= grey_factor;
+    edit->selected_text_normal.r *= grey_factor;
+    edit->selected_text_normal.g *= grey_factor;
+    edit->selected_text_normal.b *= grey_factor;
+
+    /* property */
+    property = &style->property;
+    property->normal.data.color.r *= grey_factor;
+    property->normal.data.color.g *= grey_factor;
+    property->normal.data.color.b *= grey_factor;
+    property->border_color.r *= grey_factor;
+    property->border_color.g *= grey_factor;
+    property->border_color.b *= grey_factor;
+    property->label_normal.r *= grey_factor;
+    property->label_normal.g *= grey_factor;
+    property->label_normal.b *= grey_factor;
+
+    /* property buttons */
+    button = &style->property.dec_button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
+
+    /* property edit */
+    edit = &style->property.edit;
+    edit->normal.data.color.r *= grey_factor;
+    edit->normal.data.color.g *= grey_factor;
+    edit->normal.data.color.b *= grey_factor;
+    edit->cursor_normal.r *= grey_factor;
+    edit->cursor_normal.g *= grey_factor;
+    edit->cursor_normal.b *= grey_factor;
+    edit->cursor_text_normal.r *= grey_factor;
+    edit->cursor_text_normal.g *= grey_factor;
+    edit->cursor_text_normal.b *= grey_factor;
+    edit->text_normal.r *= grey_factor;
+    edit->text_normal.g *= grey_factor;
+    edit->text_normal.b *= grey_factor;
+    edit->selected_normal.r *= grey_factor;
+    edit->selected_normal.g *= grey_factor;
+    edit->selected_normal.b *= grey_factor;
+    edit->selected_hover.r *= grey_factor;
+    edit->selected_hover.g *= grey_factor;
+    edit->selected_hover.b *= grey_factor;
+    edit->selected_text_normal.r *= grey_factor;
+    edit->selected_text_normal.g *= grey_factor;
+    edit->selected_text_normal.b *= grey_factor;
+    edit->selected_text_hover.r *= grey_factor;
+    edit->selected_text_hover.g *= grey_factor;
+    edit->selected_text_hover.b *= grey_factor;
+
+    /* chart */
+    chart = &style->chart;
+    chart->border_color.r *= grey_factor;
+    chart->border_color.g *= grey_factor;
+    chart->border_color.b *= grey_factor;
+    chart->selected_color.r *= grey_factor;
+    chart->selected_color.g *= grey_factor;
+    chart->selected_color.b *= grey_factor;
+    chart->color.r *= grey_factor;
+    chart->color.g *= grey_factor;
+    chart->color.b *= grey_factor;
+
+    /* combo */
+    combo = &style->combo;
+    combo->normal.data.color.r *= grey_factor;
+    combo->normal.data.color.g *= grey_factor;
+    combo->normal.data.color.b *= grey_factor;
+    combo->border_color.r *= grey_factor;
+    combo->border_color.g *= grey_factor;
+    combo->border_color.b *= grey_factor;
+    combo->label_normal.r *= grey_factor;
+    combo->label_normal.g *= grey_factor;
+    combo->label_normal.b *= grey_factor;
+
+    /* combo button */
+    button = &style->combo.button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
+
+    /* tab */
+    tab = &style->tab;
+    tab->text.r *= grey_factor;
+    tab->text.g *= grey_factor;
+    tab->text.b *= grey_factor;
+
+    /* tab button */
+    button = &style->tab.tab_minimize_button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
+
+    /* node button */
+    button = &style->tab.node_minimize_button;
+    button->normal.data.color.r *= grey_factor;
+    button->normal.data.color.g *= grey_factor;
+    button->normal.data.color.b *= grey_factor;
+    button->text_normal.r *= grey_factor;
+    button->text_normal.g *= grey_factor;
+    button->text_normal.b *= grey_factor;
 }
 NK_API void
 nk_style_set_font(struct nk_context *ctx, const struct nk_user_font *font)
@@ -19011,6 +19261,7 @@ nk_free(struct nk_context *ctx)
 
     nk_zero(&ctx->input, sizeof(ctx->input));
     nk_zero(&ctx->style, sizeof(ctx->style));
+    nk_zero(&ctx->style_enabled, sizeof(ctx->style_enabled));
     nk_zero(&ctx->memory, sizeof(ctx->memory));
 
     ctx->seq = 0;
@@ -20284,6 +20535,7 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
         NK_MEMCPY(win->name_string, name, name_length);
         win->name_string[name_length] = 0;
         win->popup.win = 0;
+        win->widgets_disabled = false;
         if (!ctx->active)
             ctx->active = win;
     } else {
@@ -21403,7 +21655,7 @@ nk_menu_begin_text(struct nk_context *ctx, const char *title, int len,
     win = ctx->current;
     state = nk_widget(&header, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || win->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || win->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     if (nk_do_button_text(&ctx->last_widget_state, &win->buffer, header,
         title, len, align, NK_BUTTON_DEFAULT, &ctx->style.menu_button, in, ctx->style.font))
         is_clicked = nk_true;
@@ -21433,7 +21685,7 @@ nk_menu_begin_image(struct nk_context *ctx, const char *id, struct nk_image img,
     win = ctx->current;
     state = nk_widget(&header, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     if (nk_do_button_image(&ctx->last_widget_state, &win->buffer, header,
         img, NK_BUTTON_DEFAULT, &ctx->style.menu_button, in))
         is_clicked = nk_true;
@@ -21458,7 +21710,7 @@ nk_menu_begin_symbol(struct nk_context *ctx, const char *id,
     win = ctx->current;
     state = nk_widget(&header, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     if (nk_do_button_symbol(&ctx->last_widget_state,  &win->buffer, header,
         sym, NK_BUTTON_DEFAULT, &ctx->style.menu_button, in, ctx->style.font))
         is_clicked = nk_true;
@@ -21483,7 +21735,7 @@ nk_menu_begin_image_text(struct nk_context *ctx, const char *title, int len,
     win = ctx->current;
     state = nk_widget(&header, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     if (nk_do_button_text_image(&ctx->last_widget_state, &win->buffer,
         header, img, title, len, align, NK_BUTTON_DEFAULT, &ctx->style.menu_button,
         ctx->style.font, in))
@@ -21516,7 +21768,7 @@ nk_menu_begin_symbol_text(struct nk_context *ctx, const char *title, int len,
     state = nk_widget(&header, ctx);
     if (!state) return 0;
 
-    in = (state == NK_WIDGET_ROM || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     if (nk_do_button_text_symbol(&ctx->last_widget_state, &win->buffer,
         header, sym, title, len, align, NK_BUTTON_DEFAULT, &ctx->style.menu_button,
         ctx->style.font, in)) is_clicked = nk_true;
@@ -23220,6 +23472,8 @@ nk_widget(struct nk_rect *bounds, const struct nk_context *ctx)
     nk_unify(&v, &c, bounds->x, bounds->y, bounds->x + bounds->w, bounds->y + bounds->h);
     if (!NK_INTERSECT(c.x, c.y, c.w, c.h, bounds->x, bounds->y, bounds->w, bounds->h))
         return NK_WIDGET_INVALID;
+    if (win->widgets_disabled)
+        return NK_WIDGET_DISABLED;
     if (!NK_INBOX(in->mouse.pos.x, in->mouse.pos.y, v.x, v.y, v.w, v.h))
         return NK_WIDGET_ROM;
     return NK_WIDGET_VALID;
@@ -23272,7 +23526,38 @@ nk_spacing(struct nk_context *ctx, int cols)
             nk_panel_alloc_space(&none, ctx);
     } layout->row.index = index;
 }
+NK_API void
+nk_widget_disable_begin(struct nk_context* ctx)
+{
+    struct nk_window* win;
 
+    NK_ASSERT(ctx);
+    NK_ASSERT(ctx->current);
+
+    if (!ctx || !ctx->current)
+        return;
+
+    win = ctx->current;
+    ctx->style = ctx->style_disabled;
+
+    win->widgets_disabled = nk_true;
+}
+NK_API void
+nk_widget_disable_end(struct nk_context* ctx)
+{
+    struct nk_window* win;
+
+    NK_ASSERT(ctx);
+    NK_ASSERT(ctx->current);
+
+    if (!ctx || !ctx->current)
+        return;
+
+    win = ctx->current;
+    ctx->style = ctx->style_enabled;
+
+    win->widgets_disabled = nk_false;
+}
 
 
 
@@ -23385,137 +23670,141 @@ nk_widget_text_wrap(struct nk_context *ctx, struct nk_command_buffer *o, struct 
 	nk_layout_extend_label_height(ctx, rows);
 }
 NK_LIB void
-nk_widget_text_wrap_coded(struct nk_context *ctx, struct nk_command_buffer *o, struct nk_rect b,
-	const char *string, int len, const struct nk_text *t, const struct nk_user_font *f,
-	struct nk_label_link *links, int *num_links, struct nk_label_icon *icons, int *num_icons)
+nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, struct nk_rect b,
+    const char* string, int len, const struct nk_text* t, const struct nk_user_font* f,
+    struct nk_label_link* links, int* num_links, struct nk_label_icon* icons, int* num_icons)
 {
-	float width;
-	int glyphs = 0;
-	int fitting = 0;
-	int done = 0;
-	struct nk_rect line;
-	struct nk_text text;
-	NK_INTERN nk_rune seperator[] = {' '};
+    float width;
+    int glyphs = 0;
+    int fitting = 0;
+    int done = 0;
+    struct nk_rect line;
+    struct nk_text text;
+    NK_INTERN nk_rune seperator[] = { ' ' };
 
-	NK_ASSERT(o);
-	NK_ASSERT(t);
-	if (!o || !t) return;
+    NK_ASSERT(o);
+    NK_ASSERT(t);
+    if (!o || !t) return;
 
-	text.padding = nk_vec2(0,0);
-	text.background = t->background;
-	text.text = t->text;
-	struct nk_color defaultColor = t->text;
+    text.padding = nk_vec2(0, 0);
+    text.background = t->background;
+    text.text = t->text;
+    struct nk_color defaultColor = t->text;
 
-	b.w = NK_MAX(b.w, 2 * t->padding.x);
-	b.h = NK_MAX(b.h, 2 * t->padding.y);
-	b.h = b.h - 2 * t->padding.y;
+    b.w = NK_MAX(b.w, 2 * t->padding.x);
+    b.h = NK_MAX(b.h, 2 * t->padding.y);
+    b.h = b.h - 2 * t->padding.y;
 
-	line.x = b.x + t->padding.x;
-	line.y = b.y + t->padding.y;
-	line.w = b.w - 2 * t->padding.x;
-	line.h = 2 * t->padding.y + f->height;
+    line.x = b.x + t->padding.x;
+    line.y = b.y + t->padding.y;
+    line.w = b.w - 2 * t->padding.x;
+    line.h = 2 * t->padding.y + f->height;
 
-	char clean_text[len];
-	nk_text_remove_code(string, &len, clean_text);
+    char clean_text[len];
+    nk_text_remove_code(string, &len, clean_text);
 
-	int rows = 0;
-	int tags_found = 0;
-	int colors_found = 0;
-	int hex_code_len = 6;
+    int rows = 0;
+    int tags_found = 0;
+    int colors_found = 0;
+    int hex_code_len = 6;
     int keyword_total_len = 0;
     int link_start = 0;
     int code_offset = 0;
-	nk_bool end_of_color = nk_true;
+    nk_bool end_of_color = nk_true;
 
-	while (done < len) {
-		/* Find the the number of characters of the string that can fit in the width of the window, only separating at spaces */
-		fitting = nk_text_clamp(f, &clean_text[done], len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
-		/* if fitting is 0 or the height of the allocated space of the row has been reached: break */ 
-		if (!fitting) break;
+    while (done < len) {
+        /* Find the the number of characters of the string that can fit in the width of the window, only separating at spaces */
+        fitting = nk_text_clamp(f, &clean_text[done], len - done, line.w, &glyphs, &width, seperator, NK_LEN(seperator));
+        /* if fitting is 0 or the height of the allocated space of the row has been reached: break */
+        if (!fitting) break;
 
-		rows++;
+        rows++;
 
         int row_done = 0;
-		float text_width = 0;
+        float text_width = 0;
         int fitting_extended = 0;
-		code_offset = colors_found * hex_code_len + keyword_total_len + tags_found;
-		nk_bool newline_found = nk_false;
-		
-		/* Find the COLOR_DELIM characters and color the text according to the hex color */
-		/* Example with COLOR_DELIM character set as '#': "This #FFFFFFword# will be colored white" */
-		/* Find the linkdelim characters and calculate the bounds of the words they surround */
-		/* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
-		for (int i = done; i < done + fitting + fitting_extended; i++) {
+        code_offset = colors_found * hex_code_len + keyword_total_len + tags_found;
+        nk_bool newline_found = nk_false;
+
+        /* Find the COLOR_DELIM characters and color the text according to the hex color */
+        /* Example with COLOR_DELIM character set as '#': "This #FFFFFFword# will be colored white" */
+        /* Find the linkdelim characters and calculate the bounds of the words they surround */
+        /* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
+        for (int i = done; i < done + fitting + fitting_extended; i++) {
             if (string[i + code_offset] == '\n') {
                 newline_found = nk_true;
                 fitting = i - done - fitting_extended;
                 fitting = i - done - fitting_extended;
-            } else if (string[i + code_offset] == COLOR_DELIM) {
-				text_width = f->width(f->userdata, f->height, &clean_text[done], row_done);
-				struct nk_rect sub_line = line;
-				sub_line.x += text_width;
+            }
+            else if (string[i + code_offset] == COLOR_DELIM) {
+                text_width = f->width(f->userdata, f->height, &clean_text[done], row_done);
+                struct nk_rect sub_line = line;
+                sub_line.x += text_width;
 
-				nk_widget_text(o, sub_line, &clean_text[done + row_done], i - done - row_done, &text, NK_TEXT_LEFT, f);
+                nk_widget_text(o, sub_line, &clean_text[done + row_done], i - done - row_done, &text, NK_TEXT_LEFT, f);
 
-				row_done = i - done;
+                row_done = i - done;
 
-				struct nk_color textColor = defaultColor;
-				if (end_of_color) {
-					colors_found++;
-					textColor = nk_rgb_hex(&string[i + code_offset + 1]);
-				}
+                struct nk_color textColor = defaultColor;
+                if (end_of_color) {
+                    colors_found++;
+                    textColor = nk_rgb_hex(&string[i + code_offset + 1]);
+                }
 
-			    end_of_color = !end_of_color;
-			    tags_found++;
+                end_of_color = !end_of_color;
+                tags_found++;
 
-				text.text = textColor;
-				i--;
-			} else if (string[i + code_offset] == LINK_DELIM_START) {
-				tags_found++;
+                text.text = textColor;
+                i--;
+            }
+            else if (string[i + code_offset] == LINK_DELIM_START) {
+                tags_found++;
 
                 link_start = i;
-				text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
-				struct nk_rect sub_line = line;
-				sub_line.x += text_width;
+                text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
+                struct nk_rect sub_line = line;
+                sub_line.x += text_width;
 
-				links[*num_links].bounds.x = sub_line.x;
-				links[*num_links].bounds.y = sub_line.y;
-				links[*num_links].bounds.h = sub_line.h;
+                links[*num_links].bounds.x = sub_line.x;
+                links[*num_links].bounds.y = sub_line.y;
+                links[*num_links].bounds.h = sub_line.h;
                 links[*num_links].keyword_len = 0;
 
-				i--;
-			} else if (string[i + code_offset] == LINK_DELIM_END) {
+                i--;
+            }
+            else if (string[i + code_offset] == LINK_DELIM_END) {
 
-				text_width = f->width(f->userdata, f->height, &clean_text[link_start], i - link_start);
-				struct nk_rect sub_line = line;
-				sub_line.w = text_width;
+                text_width = f->width(f->userdata, f->height, &clean_text[link_start], i - link_start);
+                struct nk_rect sub_line = line;
+                sub_line.w = text_width;
 
-				links[*num_links].bounds.w = sub_line.w;
+                links[*num_links].bounds.w = sub_line.w;
 
                 int kw_len = 0;
                 const int link_tags = 2;
                 do {
-	                links[*num_links].keyword[kw_len] = string[i + code_offset + kw_len + link_tags];
+                    links[*num_links].keyword[kw_len] = string[i + code_offset + kw_len + link_tags];
                     kw_len++;
                 } while (kw_len < len && string[i + code_offset + kw_len + link_tags] != LINK_KEY_DELIM_END);
 
                 links[*num_links].keyword_len = kw_len;
-				links[*num_links].keyword[links[*num_links].keyword_len] = '\0';
+                links[*num_links].keyword[links[*num_links].keyword_len] = '\0';
                 keyword_total_len += kw_len;
-				(*num_links)++;
-				tags_found += link_tags + 1;
-				i--;
-			} else if (string[i + code_offset] == ICON_DELIM) {
+                (*num_links)++;
+                tags_found += link_tags + 1;
+                i--;
+            }
+            else if (string[i + code_offset] == ICON_DELIM_START) {
                 clean_text[i] = ' ';
 
                 text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
-				struct nk_rect sub_line = line;
-				sub_line.x += text_width;
+                struct nk_rect sub_line = line;
+                sub_line.x += text_width;
 
                 icons[*num_icons].bounds.x = sub_line.x;
-				icons[*num_icons].bounds.y = sub_line.y;
-				icons[*num_icons].bounds.h = sub_line.h;
-				icons[*num_icons].bounds.w = sub_line.h;
+                icons[*num_icons].bounds.y = sub_line.y;
+                icons[*num_icons].bounds.h = sub_line.h;
+                icons[*num_icons].bounds.w = sub_line.h;
                 icons[*num_icons].keyword_len = 0;
 
                 int kw_len = 0;
@@ -23523,92 +23812,97 @@ nk_widget_text_wrap_coded(struct nk_context *ctx, struct nk_command_buffer *o, s
                 do {
                     icons[*num_icons].keyword[kw_len] = string[i + code_offset + kw_len + icon_tag];
                     kw_len++;
-                } while (kw_len < len && string[i + code_offset + kw_len + icon_tag] != ICON_DELIM);
+                } while (kw_len < len && string[i + code_offset + kw_len + icon_tag] != ICON_DELIM_END);
+
                 i++;
                 clean_text[i] = ' ';
-				icons[*num_icons].keyword_len = kw_len;
+                icons[*num_icons].keyword_len = kw_len;
                 icons[*num_icons].keyword[kw_len] = '\0';
                 keyword_total_len += kw_len;
-				(*num_icons)++;
-			}
+                (*num_icons)++;
+            }
 
-			code_offset = colors_found * hex_code_len + keyword_total_len + tags_found;
+            code_offset = colors_found * hex_code_len + keyword_total_len + tags_found;
 
             /* Check if the ends are the next characters and extend the for loop to make sure we finish them or else we break them */
             if (string[i + 1 + code_offset] == LINK_DELIM_END || string[i + 1 + code_offset] == COLOR_DELIM)
-	            fitting_extended++;
+                fitting_extended++;
             else
                 fitting_extended = 0;
-		}
-		if (row_done != fitting) {
-			text_width = f->width(f->userdata, f->height, &clean_text[done], fitting - (fitting - row_done));
-			struct nk_rect sub_line = line;
-			sub_line.x += text_width;
-			nk_widget_text(o, sub_line, &clean_text[done + row_done], fitting - row_done, &text, NK_TEXT_LEFT, f);
-		}
+        }
+        if (row_done != fitting) {
+            text_width = f->width(f->userdata, f->height, &clean_text[done], fitting - (fitting - row_done));
+            struct nk_rect sub_line = line;
+            sub_line.x += text_width;
+            nk_widget_text(o, sub_line, &clean_text[done + row_done], fitting - row_done, &text, NK_TEXT_LEFT, f);
+        }
 
-		/* Skip drawing the newline character */
-		if (newline_found) {
-			fitting++;
-		}
+        /* Skip drawing the newline character */
+        if (newline_found) {
+            fitting++;
+        }
 
-		done += fitting;
-		line.y += f->height + 2 * t->padding.y;
-	}
-	nk_layout_extend_label_height(ctx, rows);
+        done += fitting;
+        line.y += f->height + 2 * t->padding.y;
+    }
+    nk_layout_extend_label_height(ctx, rows);
 }
 NK_LIB
-void nk_text_remove_code(const char* text, int* len, char *clean_text)
+void nk_text_remove_code(const char* text, int* len, char* clean_text)
 {
-	int tags_found = 0;
-	int colors_found = 0;
-	int hex_code_len = 6;
+    int tags_found = 0;
+    int colors_found = 0;
+    int hex_code_len = 6;
     int link_keyword_len = 0;
     int icon_keyword_len = 0;
-	nk_bool end_of_color = nk_true;
+    nk_bool end_of_color = nk_true;
 
 
-	int code_offset = 0;
-	for (int i = 0; i < *len; i++) {
-		if (text[i] != COLOR_DELIM && text[i] != LINK_DELIM_START && text[i] != LINK_DELIM_END) {
-			clean_text[i - code_offset] = text[i];
-		} else if (end_of_color && text[i] == COLOR_DELIM) {
-			end_of_color = nk_false;
-			tags_found++;
-			colors_found++;
-			i += hex_code_len;
-		} else if (text[i] == COLOR_DELIM) {
-			end_of_color = nk_true;
-			tags_found++;
-		} else if (text[i] == LINK_DELIM_START) {
-			tags_found++;
-		} else if (text[i] == LINK_DELIM_END) {
-			tags_found += 3;
+    int code_offset = 0;
+    for (int i = 0; i < *len; i++) {
+        if (text[i] != COLOR_DELIM && text[i] != LINK_DELIM_START && text[i] != LINK_DELIM_END) {
+            clean_text[i - code_offset] = text[i];
+        }
+        else if (end_of_color && text[i] == COLOR_DELIM) {
+            end_of_color = nk_false;
+            tags_found++;
+            colors_found++;
+            i += hex_code_len;
+        }
+        else if (text[i] == COLOR_DELIM) {
+            end_of_color = nk_true;
+            tags_found++;
+        }
+        else if (text[i] == LINK_DELIM_START) {
+            tags_found++;
+        }
+        else if (text[i] == LINK_DELIM_END) {
+            tags_found += 3;
             i += 2;
             int kw_len = 0;
             while (text[i] != ')') {
-				kw_len++;
+                kw_len++;
                 i++;
             }
             link_keyword_len += kw_len;
-		}
+        }
 
-		if (text[i] == ICON_DELIM) {
-			i++;
+        if (text[i] == ICON_DELIM_START) {
+            i++;
             int kw_len = 0;
-            while (text[i] != ICON_DELIM) {
+            while (text[i] != ICON_DELIM_END) {
                 kw_len++;
                 i++;
             }
             icon_keyword_len += kw_len;
-			clean_text[i - code_offset - kw_len] = text[i];
+            clean_text[i - code_offset - kw_len] = text[i];
         }
 
-		code_offset = colors_found * hex_code_len + tags_found + icon_keyword_len + link_keyword_len;
-	}
+        code_offset = colors_found * hex_code_len + tags_found + icon_keyword_len + link_keyword_len;
+    }
 
     (*len) = (*len) - code_offset;
-	clean_text[*len] = '\0';
+    clean_text[*len] = '\0';
 }
 NK_API void
 nk_text_colored(struct nk_context *ctx, const char *str, int len,
@@ -24550,7 +24844,7 @@ nk_button_text_styled(struct nk_context *ctx,
     state = nk_widget(&bounds, ctx);
 
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_button_text(&ctx->last_widget_state, &win->buffer, bounds,
                     title, len, style->text_alignment, ctx->button_behavior,
                     style, in, ctx->style.font);
@@ -24595,7 +24889,7 @@ nk_button_color(struct nk_context *ctx, struct nk_color color)
 
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
 
     button = ctx->style.button;
     button.normal = nk_style_item_color(color);
@@ -24627,7 +24921,7 @@ nk_button_symbol_styled(struct nk_context *ctx,
     layout = win->layout;
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_button_symbol(&ctx->last_widget_state, &win->buffer, bounds,
             symbol, ctx->button_behavior, style, in, ctx->style.font);
 }
@@ -24660,7 +24954,7 @@ nk_button_image_styled(struct nk_context *ctx, const struct nk_style_button *sty
 
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_button_image(&ctx->last_widget_state, &win->buffer, bounds,
                 img, ctx->button_behavior, style, in);
 }
@@ -24694,7 +24988,7 @@ nk_button_symbol_text_styled(struct nk_context *ctx,
 
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_button_text_symbol(&ctx->last_widget_state, &win->buffer, bounds,
                 symbol, text, len, align, ctx->button_behavior,
                 style, ctx->style.font, in);
@@ -24741,7 +25035,7 @@ nk_button_image_text_styled(struct nk_context *ctx,
 
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_button_text_image(&ctx->last_widget_state, &win->buffer,
             bounds, img, text, len, align, ctx->button_behavior,
             style, ctx->style.font, in);
@@ -24962,7 +25256,7 @@ nk_check_text(struct nk_context *ctx, const char *text, int len, nk_bool active)
 
     state = nk_widget(&bounds, ctx);
     if (!state) return active;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     nk_do_toggle(&ctx->last_widget_state, &win->buffer, bounds, &active,
         text, len, NK_TOGGLE_CHECK, &style->checkbox, in, style->font);
     return active;
@@ -25057,7 +25351,7 @@ nk_option_text(struct nk_context *ctx, const char *text, int len, nk_bool is_act
 
     state = nk_widget(&bounds, ctx);
     if (!state) return (int)state;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     nk_do_toggle(&ctx->last_widget_state, &win->buffer, bounds, &is_active,
         text, len, NK_TOGGLE_OPTION, &style->option, in, style->font);
     return is_active;
@@ -25306,7 +25600,7 @@ nk_selectable_text(struct nk_context *ctx, const char *str, int len,
 
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_selectable(&ctx->last_widget_state, &win->buffer, bounds,
                 str, len, align, value, &style->selectable, in, style->font);
 }
@@ -25335,7 +25629,7 @@ nk_selectable_image_text(struct nk_context *ctx, struct nk_image img,
 
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_selectable_image(&ctx->last_widget_state, &win->buffer, bounds,
                 str, len, align, value, &img, &style->selectable, in, style->font);
 }
@@ -25364,7 +25658,7 @@ nk_selectable_symbol_text(struct nk_context *ctx, enum nk_symbol_type sym,
 
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_selectable_symbol(&ctx->last_widget_state, &win->buffer, bounds,
                 str, len, align, value, sym, &style->selectable, in, style->font);
 }
@@ -25648,7 +25942,7 @@ nk_slider_float(struct nk_context *ctx, float min_value, float *value, float max
 
     state = nk_widget(&bounds, ctx);
     if (!state) return ret;
-    in = (/*state == NK_WIDGET_ROM || */ layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (/*state == NK_WIDGET_ROM || */ state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
 
     old_value = *value;
     *value = nk_do_slider(&ctx->last_widget_state, &win->buffer, bounds, min_value,
@@ -25823,7 +26117,7 @@ nk_progress(struct nk_context *ctx, nk_size *cur, nk_size max, nk_bool is_modify
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
 
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     old_value = *cur;
     *cur = nk_do_progress(&ctx->last_widget_state, &win->buffer, bounds,
             *cur, max, is_modifyable, &style->progress, in);
@@ -27953,6 +28247,9 @@ nk_edit_buffer(struct nk_context *ctx, nk_flags flags,
     style = &ctx->style;
     state = nk_widget(&bounds, ctx);
     if (!state) return state;
+    else if (state == NK_WIDGET_DISABLED)
+        flags |= NK_EDIT_READ_ONLY;
+
     in = (win->layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
 
     /* check if edit is currently hot item */
@@ -28384,7 +28681,7 @@ nk_property(struct nk_context *ctx, const char *name, struct nk_property_variant
     old_state = *state;
     ctx->text_edit.clip = ctx->clip;
     in = ((s == NK_WIDGET_ROM && !win->property.active) ||
-        layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+        layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED) ? 0 : &ctx->input;
     nk_do_property(&ctx->last_widget_state, &win->buffer, bounds, name,
         variant, inc_per_pixel, buffer, len, state, cursor, select_begin,
         select_end, &style->property, filter, in, style->font, &ctx->text_edit,
@@ -29018,7 +29315,7 @@ nk_color_pick(struct nk_context * ctx, struct nk_colorf *color,
     layout = win->layout;
     state = nk_widget(&bounds, ctx);
     if (!state) return 0;
-    in = (state == NK_WIDGET_ROM || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
+    in = (state == NK_WIDGET_ROM || state == NK_WIDGET_DISABLED || layout->flags & NK_WINDOW_ROM) ? 0 : &ctx->input;
     return nk_do_color_picker(&ctx->last_widget_state, &win->buffer, color, fmt, bounds,
                 nk_vec2(0,0), in, config->font);
 }
@@ -29100,7 +29397,7 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29208,7 +29505,7 @@ nk_combo_begin_color(struct nk_context *ctx, struct nk_color color, struct nk_ve
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29301,7 +29598,7 @@ nk_combo_begin_symbol(struct nk_context *ctx, enum nk_symbol_type symbol, struct
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29395,7 +29692,7 @@ nk_combo_begin_symbol_text(struct nk_context *ctx, const char *selected, int len
     s = nk_widget(&header, ctx);
     if (!s) return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29497,7 +29794,7 @@ nk_combo_begin_image(struct nk_context *ctx, struct nk_image img, struct nk_vec2
     if (s == NK_WIDGET_INVALID)
         return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
@@ -29589,7 +29886,7 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
     s = nk_widget(&header, ctx);
     if (!s) return 0;
 
-    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_ROM)? 0: &ctx->input;
+    in = (win->layout->flags & NK_WINDOW_ROM || s == NK_WIDGET_DISABLED || s == NK_WIDGET_ROM)? 0: &ctx->input;
     if (nk_button_behavior(&ctx->last_widget_state, header, in, NK_BUTTON_DEFAULT))
         is_clicked = nk_true;
 
