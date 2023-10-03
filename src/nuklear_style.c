@@ -764,9 +764,15 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->selected_normal.r *= grey_factor;
     edit->selected_normal.g *= grey_factor;
     edit->selected_normal.b *= grey_factor;
+    edit->selected_hover.r *= grey_factor;
+    edit->selected_hover.g *= grey_factor;
+    edit->selected_hover.b *= grey_factor;
     edit->selected_text_normal.r *= grey_factor;
     edit->selected_text_normal.g *= grey_factor;
     edit->selected_text_normal.b *= grey_factor;
+    edit->selected_text_hover.r *= grey_factor;
+    edit->selected_text_hover.g *= grey_factor;
+    edit->selected_text_hover.b *= grey_factor;
 
     /* property */
     property = &style->property;

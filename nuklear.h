@@ -18913,9 +18913,15 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->selected_normal.r *= grey_factor;
     edit->selected_normal.g *= grey_factor;
     edit->selected_normal.b *= grey_factor;
+    edit->selected_hover.r *= grey_factor;
+    edit->selected_hover.g *= grey_factor;
+    edit->selected_hover.b *= grey_factor;
     edit->selected_text_normal.r *= grey_factor;
     edit->selected_text_normal.g *= grey_factor;
     edit->selected_text_normal.b *= grey_factor;
+    edit->selected_text_hover.r *= grey_factor;
+    edit->selected_text_hover.g *= grey_factor;
+    edit->selected_text_hover.b *= grey_factor;
 
     /* property */
     property = &style->property;
@@ -30335,7 +30341,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 ///   - [y]: Minor version with non-breaking API and library changes
 ///   - [z]: Patch version with no direct changes to the API
 ///
-/// - 2023/09/17 (4.11.0) - Added nk_widget_text_wrap_coded, wraps and handles coded text for colors and links
+/// - 2023/10/03 (4.11.0) - Added nk_widget_text_wrap_coded, wraps and handles coded text for colors and links
 ///						  - Added nk_layout_extend_label_height, extends the label height if they wrap
 ///						  - Added nk_text_remove_hex_colors, removes hex color code from text
 ///						  - Added nk_text_extract_links, removes link code from text
@@ -30348,6 +30354,8 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 ///							depending on panels in the window
 ///						  - Added NK_WINDOW_FOCUS_IF_LATEST, window flag for keeping focus to newly created windows
 ///							that dont overlap the previous window
+///						  - Updated overview.c example to show off new features
+///						  - Added ability to draw icons in labels
 /// - 2022/12/23 (4.10.6) - Fix incorrect glyph index in nk_font_bake()
 /// - 2022/12/17 (4.10.5) - Fix nk_font_bake_pack() using TTC font offset incorrectly
 /// - 2022/10/24 (4.10.4) - Fix nk_str_{append,insert}_str_utf8 always returning 0
