@@ -28027,6 +28027,10 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
         else
             background_color = background->data.color;
 
+        if (!select_begin_ptr) {
+            edit->select_start = 0;
+            edit->select_end = 0;
+        }
 
         if (edit->select_start == edit->select_end) {
             /* no selection so just draw the complete text */
