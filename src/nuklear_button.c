@@ -98,16 +98,16 @@ nk_draw_button(struct nk_command_buffer *out,
         background = &style->active;
     else background = &style->normal;
 
-    switch(background->type) {
+    switch (background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
-            nk_stroke_rect(out, *bounds, style->rounding, style->border, style->border_color);
+            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_stroke_rect(out, *bounds, style->rounding, style->border, nk_rgb_factor(style->border_color, style->color_factor));
             break;
     }
     return background;
@@ -157,6 +157,8 @@ nk_draw_button_text(struct nk_command_buffer *out,
         text.text = style->text_active;
     else text.text = style->text_normal;
 
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+
     text.padding = nk_vec2(0,0);
     nk_widget_text(out, *content, txt, len, &text, text_alignment, font);
 }
@@ -204,6 +206,7 @@ nk_draw_button_symbol(struct nk_command_buffer *out,
     else if (state & NK_WIDGET_STATE_ACTIVED)
         sym = style->text_active;
     else sym = style->text_normal;
+    sym = nk_rgb_factor(sym, style->color_factor);
     nk_draw_symbol(out, type, *content, bg, sym, 1, font);
 }
 NK_LIB nk_bool
@@ -292,6 +295,8 @@ nk_draw_button_text_symbol(struct nk_command_buffer *out,
         text.text = style->text_normal;
     }
 
+    sym = nk_rgb_factor(sym, style->color_factor);
+    text.text = nk_rgb_factor(text.text, style->color_factor);
     text.padding = nk_vec2(0,0);
     nk_draw_symbol(out, type, *symbol, style->text_background, sym, 0, font);
     nk_widget_text(out, *label, str, len, &text, NK_TEXT_CENTERED, font);
@@ -349,7 +354,8 @@ nk_draw_button_text_image(struct nk_command_buffer *out,
         text.text = style->text_active;
     else text.text = style->text_normal;
 
-    text.padding = nk_vec2(0,0);
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+    text.padding = nk_vec2(0, 0);
     nk_widget_text(out, *label, str, len, &text, NK_TEXT_CENTERED, font);
     nk_draw_image(out, *image, img, nk_white);
 }

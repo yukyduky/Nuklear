@@ -113,6 +113,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     text = &style->text;
     text->color = table[NK_COLOR_TEXT];
     text->padding = nk_vec2(0,0);
+    text->color_factor = 1.0f;
+    text->disabled_factor = 0.5f;
 
     /* default button */
     button = &style->button;
@@ -132,6 +134,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 1.0f;
     button->rounding        = 4.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -152,6 +156,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -172,6 +178,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 1.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -193,6 +201,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     toggle->border_color    = nk_rgba(0,0,0,0);
     toggle->border          = 0.0f;
     toggle->spacing         = 4;
+    toggle->color_factor    = 1.0f;
+    toggle->disabled_factor = 0.5f;
 
     /* option toggle */
     toggle = &style->option;
@@ -212,6 +222,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     toggle->border_color    = nk_rgba(0,0,0,0);
     toggle->border          = 0.0f;
     toggle->spacing         = 4;
+    toggle->color_factor    = 1.0f;
+    toggle->disabled_factor = 0.5f;
 
     /* selectable */
     select = &style->selectable;
@@ -233,6 +245,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     select->touch_padding   = nk_vec2(0,0);
     select->userdata        = nk_handle_ptr(0);
     select->rounding        = 0.0f;
+    select->color_factor    = 1.0f;
+    select->disabled_factor = 0.5f;
     select->draw_begin      = 0;
     select->draw_end        = 0;
 
@@ -258,6 +272,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     slider->show_buttons    = nk_false;
     slider->bar_height      = 8;
     slider->rounding        = 0;
+    slider->color_factor    = 1.0f;
+    slider->disabled_factor = 0.5f;
     slider->draw_begin      = 0;
     slider->draw_end        = 0;
 
@@ -277,6 +293,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 1.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->slider.dec_button = style->slider.inc_button;
@@ -298,6 +316,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     prog->border            = 0;
     prog->cursor_rounding   = 0;
     prog->cursor_border     = 0;
+    prog->color_factor      = 1.0f;
+    prog->disabled_factor   = 0.5f;
     prog->draw_begin        = 0;
     prog->draw_end          = 0;
 
@@ -321,6 +341,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     scroll->rounding        = 0;
     scroll->border_cursor   = 0;
     scroll->rounding_cursor = 0;
+    scroll->color_factor    = 1.0f;
+    scroll->disabled_factor = 0.5f;
     scroll->draw_begin      = 0;
     scroll->draw_end        = 0;
     style->scrollv = style->scrollh;
@@ -341,6 +363,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 1.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->scrollh.dec_button = style->scrollh.inc_button;
@@ -372,6 +396,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->cursor_size       = 4;
     edit->border            = 1;
     edit->rounding          = 0;
+    edit->color_factor      = 1.0f;
+    edit->disabled_factor   = 0.5f;
 
     /* property */
     property = &style->property;
@@ -391,6 +417,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     property->rounding      = 10;
     property->draw_begin    = 0;
     property->draw_end      = 0;
+    property->color_factor  = 1.0f;
+    property->disabled_factor = 0.5f;
 
     /* property buttons */
     button = &style->property.dec_button;
@@ -409,6 +437,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->property.inc_button = style->property.dec_button;
@@ -435,6 +465,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->cursor_size       = 8;
     edit->border            = 0;
     edit->rounding          = 0;
+    edit->color_factor      = 1.0f;
+    edit->disabled_factor   = 0.5f;
 
     /* chart */
     chart = &style->chart;
@@ -446,6 +478,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     chart->padding          = nk_vec2(4,4);
     chart->border           = 0;
     chart->rounding         = 0;
+    chart->color_factor     = 1.0f;
+    chart->disabled_factor  = 0.5f;
 
     /* combo */
     combo = &style->combo;
@@ -464,6 +498,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     combo->spacing          = nk_vec2(4,0);
     combo->border           = 1;
     combo->rounding         = 0;
+    combo->color_factor     = 1.0f;
+    combo->disabled_factor  = 0.5f;
 
     /* combo button */
     button = &style->combo.button;
@@ -482,6 +518,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -497,6 +535,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     tab->indent             = 10.0f;
     tab->border             = 1;
     tab->rounding           = 0;
+    tab->color_factor       = 1.0f;
+    tab->disabled_factor    = 0.5f;
 
     /* tab button */
     button = &style->tab.tab_minimize_button;
@@ -515,6 +555,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->tab.tab_maximize_button =*button;
@@ -536,6 +578,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->tab.node_maximize_button =*button;
@@ -573,6 +617,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -593,6 +639,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -629,255 +677,6 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     win->contextual_padding = nk_vec2(4,4);
     win->menu_padding = nk_vec2(4,4);
     win->tooltip_padding = nk_vec2(4,4);
-
-
-    /* ---- Disabled style ---- */
-
-    ctx->style_enabled = *style;
-    ctx->style_disabled = *style;
-    style = &ctx->style_disabled;
-    float grey_factor = 0.4f;
-
-        /* default button */
-    button = &style->button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* contextual button */
-    button = &style->contextual_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* menu button */
-    button = &style->menu_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* checkbox toggle */
-    toggle = &style->checkbox;
-    toggle->normal.data.color.r *= grey_factor;
-    toggle->normal.data.color.g *= grey_factor;
-    toggle->normal.data.color.b *= grey_factor;
-    toggle->cursor_normal.data.color.r *= grey_factor;
-    toggle->cursor_normal.data.color.g *= grey_factor;
-    toggle->cursor_normal.data.color.b *= grey_factor;
-    toggle->text_normal.r *= grey_factor;
-    toggle->text_normal.g *= grey_factor;
-    toggle->text_normal.b *= grey_factor;
-
-    /* option toggle */
-    toggle = &style->option;
-    toggle->normal.data.color.r *= grey_factor;
-    toggle->normal.data.color.g *= grey_factor;
-    toggle->normal.data.color.b *= grey_factor;
-    toggle->cursor_normal.data.color.r *= grey_factor;
-    toggle->cursor_normal.data.color.g *= grey_factor;
-    toggle->cursor_normal.data.color.b *= grey_factor;
-    toggle->text_normal.r *= grey_factor;
-    toggle->text_normal.g *= grey_factor;
-    toggle->text_normal.b *= grey_factor;
-
-    /* selectable */
-    select = &style->selectable;
-    select->normal.data.color.r *= grey_factor;
-    select->normal.data.color.g *= grey_factor;
-    select->normal.data.color.b *= grey_factor;
-    select->normal_active.data.color.r *= grey_factor;
-    select->normal_active.data.color.g *= grey_factor;
-    select->normal_active.data.color.b *= grey_factor;
-    select->text_normal.r *= grey_factor;
-    select->text_normal.g *= grey_factor;
-    select->text_normal.b *= grey_factor;
-
-    /* slider */
-    slider = &style->slider;
-    slider->normal = nk_style_item_hide();
-    slider->bar_normal.r *= grey_factor;
-    slider->bar_normal.g *= grey_factor;
-    slider->bar_normal.b *= grey_factor;
-    slider->cursor_normal.data.color.r *= grey_factor;
-    slider->cursor_normal.data.color.g *= grey_factor;
-    slider->cursor_normal.data.color.b *= grey_factor;
-
-    /* slider buttons */
-    button = &style->slider.inc_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* progressbar */
-    prog = &style->progress;
-    prog->normal.data.color.r *= grey_factor;
-    prog->normal.data.color.g *= grey_factor;
-    prog->normal.data.color.b *= grey_factor;
-    prog->cursor_normal.data.color.r *= grey_factor;
-    prog->cursor_normal.data.color.g *= grey_factor;
-    prog->cursor_normal.data.color.b *= grey_factor;
-
-    /* edit */
-    edit = &style->edit;
-    edit->normal.data.color.r *= grey_factor;
-    edit->normal.data.color.g *= grey_factor;
-    edit->normal.data.color.b *= grey_factor;
-    edit->active.data.color.r *= grey_factor;
-    edit->active.data.color.g *= grey_factor;
-    edit->active.data.color.b *= grey_factor;
-    edit->cursor_normal.r *= grey_factor;
-    edit->cursor_normal.g *= grey_factor;
-    edit->cursor_normal.b *= grey_factor;
-    edit->cursor_text_normal.r *= grey_factor;
-    edit->cursor_text_normal.g *= grey_factor;
-    edit->cursor_text_normal.b *= grey_factor;
-    edit->text_normal.r *= grey_factor;
-    edit->text_normal.g *= grey_factor;
-    edit->text_normal.b *= grey_factor;
-    edit->text_active.r *= grey_factor;
-    edit->text_active.g *= grey_factor;
-    edit->text_active.b *= grey_factor;
-    edit->selected_normal.r *= grey_factor;
-    edit->selected_normal.g *= grey_factor;
-    edit->selected_normal.b *= grey_factor;
-    edit->selected_hover.r *= grey_factor;
-    edit->selected_hover.g *= grey_factor;
-    edit->selected_hover.b *= grey_factor;
-    edit->selected_text_normal.r *= grey_factor;
-    edit->selected_text_normal.g *= grey_factor;
-    edit->selected_text_normal.b *= grey_factor;
-    edit->selected_text_hover.r *= grey_factor;
-    edit->selected_text_hover.g *= grey_factor;
-    edit->selected_text_hover.b *= grey_factor;
-
-    /* property */
-    property = &style->property;
-    property->normal.data.color.r *= grey_factor;
-    property->normal.data.color.g *= grey_factor;
-    property->normal.data.color.b *= grey_factor;
-    property->border_color.r *= grey_factor;
-    property->border_color.g *= grey_factor;
-    property->border_color.b *= grey_factor;
-    property->label_normal.r *= grey_factor;
-    property->label_normal.g *= grey_factor;
-    property->label_normal.b *= grey_factor;
-
-    /* property buttons */
-    button = &style->property.dec_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* property edit */
-    edit = &style->property.edit;
-    edit->normal.data.color.r *= grey_factor;
-    edit->normal.data.color.g *= grey_factor;
-    edit->normal.data.color.b *= grey_factor;
-    edit->cursor_normal.r *= grey_factor;
-    edit->cursor_normal.g *= grey_factor;
-    edit->cursor_normal.b *= grey_factor;
-    edit->cursor_text_normal.r *= grey_factor;
-    edit->cursor_text_normal.g *= grey_factor;
-    edit->cursor_text_normal.b *= grey_factor;
-    edit->text_normal.r *= grey_factor;
-    edit->text_normal.g *= grey_factor;
-    edit->text_normal.b *= grey_factor;
-    edit->selected_normal.r *= grey_factor;
-    edit->selected_normal.g *= grey_factor;
-    edit->selected_normal.b *= grey_factor;
-    edit->selected_hover.r *= grey_factor;
-    edit->selected_hover.g *= grey_factor;
-    edit->selected_hover.b *= grey_factor;
-    edit->selected_text_normal.r *= grey_factor;
-    edit->selected_text_normal.g *= grey_factor;
-    edit->selected_text_normal.b *= grey_factor;
-    edit->selected_text_hover.r *= grey_factor;
-    edit->selected_text_hover.g *= grey_factor;
-    edit->selected_text_hover.b *= grey_factor;
-
-    /* chart */
-    chart = &style->chart;
-    chart->border_color.r *= grey_factor;
-    chart->border_color.g *= grey_factor;
-    chart->border_color.b *= grey_factor;
-    chart->selected_color.r *= grey_factor;
-    chart->selected_color.g *= grey_factor;
-    chart->selected_color.b *= grey_factor;
-    chart->color.r *= grey_factor;
-    chart->color.g *= grey_factor;
-    chart->color.b *= grey_factor;
-
-    /* combo */
-    combo = &style->combo;
-    combo->normal.data.color.r *= grey_factor;
-    combo->normal.data.color.g *= grey_factor;
-    combo->normal.data.color.b *= grey_factor;
-    combo->border_color.r *= grey_factor;
-    combo->border_color.g *= grey_factor;
-    combo->border_color.b *= grey_factor;
-    combo->label_normal.r *= grey_factor;
-    combo->label_normal.g *= grey_factor;
-    combo->label_normal.b *= grey_factor;
-
-    /* combo button */
-    button = &style->combo.button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* tab */
-    tab = &style->tab;
-    tab->text.r *= grey_factor;
-    tab->text.g *= grey_factor;
-    tab->text.b *= grey_factor;
-
-    /* tab button */
-    button = &style->tab.tab_minimize_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* node button */
-    button = &style->tab.node_minimize_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
 }
 NK_API void
 nk_style_set_font(struct nk_context *ctx, const struct nk_user_font *font)

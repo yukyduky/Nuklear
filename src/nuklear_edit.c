@@ -89,6 +89,9 @@ nk_edit_draw_text(struct nk_command_buffer *out,
     float line_offset = 0;
     int line_count = 0;
 
+    foreground = nk_rgb_factor(foreground, style->color_factor);
+    background = nk_rgb_factor(background, style->color_factor);
+
     struct nk_text txt;
     txt.padding = nk_vec2(0,0);
     txt.background = background;
@@ -331,14 +334,14 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
     /* draw background frame */
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, bounds, &background->data.image, nk_white);
+            nk_draw_image(out, bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(out, bounds, style->rounding, background->data.color);
-            nk_stroke_rect(out, bounds, style->rounding, style->border, style->border_color);
+            nk_fill_rect(out, bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_stroke_rect(out, bounds, style->rounding, style->border, nk_rgb_factor(style->border_color, style->color_factor));
             break;
     }}
 
@@ -552,6 +555,9 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
             edit->select_end = 0;
         }
 
+        cursor_color = nk_rgb_factor(cursor_color, style->color_factor);
+        cursor_text_color = nk_rgb_factor(cursor_text_color, style->color_factor);
+
         if (edit->select_start == edit->select_end) {
             /* no selection so just draw the complete text */
             const char *begin = nk_str_get_const(&edit->string);
@@ -658,6 +664,10 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
             background_color = nk_rgba(0,0,0,0);
         else
             background_color = background->data.color;
+
+        background_color = nk_rgb_factor(background_color, style->color_factor);
+        text_color = nk_rgb_factor(text_color, style->color_factor);
+
         nk_edit_draw_text(out, style, area.x - edit->scrollbar.x,
             area.y - edit->scrollbar.y, 0, begin, l, row_height, font,
             background_color, text_color, nk_false);

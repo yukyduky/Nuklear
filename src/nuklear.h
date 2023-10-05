@@ -3475,6 +3475,7 @@ NK_API struct nk_color nk_rgb_f(float r, float g, float b);
 NK_API struct nk_color nk_rgb_fv(const float *rgb);
 NK_API struct nk_color nk_rgb_cf(struct nk_colorf c);
 NK_API struct nk_color nk_rgb_hex(const char *rgb);
+NK_API struct nk_color nk_rgb_factor(const struct nk_color col, const float factor);
 
 NK_API struct nk_color nk_rgba(int r, int g, int b, int a);
 NK_API struct nk_color nk_rgba_u32(nk_uint);
@@ -4707,6 +4708,8 @@ struct nk_style_item {
 struct nk_style_text {
     struct nk_color color;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_button {
@@ -4729,6 +4732,8 @@ struct nk_style_button {
     struct nk_vec2 padding;
     struct nk_vec2 image_padding;
     struct nk_vec2 touch_padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4759,6 +4764,8 @@ struct nk_style_toggle {
     struct nk_vec2 touch_padding;
     float spacing;
     float border;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4794,6 +4801,8 @@ struct nk_style_selectable {
     struct nk_vec2 padding;
     struct nk_vec2 touch_padding;
     struct nk_vec2 image_padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4826,6 +4835,8 @@ struct nk_style_slider {
     struct nk_vec2 padding;
     struct nk_vec2 spacing;
     struct nk_vec2 cursor_size;
+    float color_factor;
+    float disabled_factor;
 
     /* optional buttons */
     int show_buttons;
@@ -4859,6 +4870,8 @@ struct nk_style_progress {
     float cursor_border;
     float cursor_rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4885,6 +4898,8 @@ struct nk_style_scrollbar {
     float border_cursor;
     float rounding_cursor;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional buttons */
     int show_buttons;
@@ -4931,6 +4946,8 @@ struct nk_style_edit {
     struct nk_vec2 scrollbar_size;
     struct nk_vec2 padding;
     float row_padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_property {
@@ -4953,6 +4970,8 @@ struct nk_style_property {
     float border;
     float rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     struct nk_style_edit edit;
     struct nk_style_button inc_button;
@@ -4975,6 +4994,8 @@ struct nk_style_chart {
     float border;
     float rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_combo {
@@ -5006,6 +5027,8 @@ struct nk_style_combo {
     struct nk_vec2 content_padding;
     struct nk_vec2 button_padding;
     struct nk_vec2 spacing;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_tab {
@@ -5028,6 +5051,8 @@ struct nk_style_tab {
     float indent;
     struct nk_vec2 padding;
     struct nk_vec2 spacing;
+    float color_factor;
+    float disabled_factor;
 };
 
 enum nk_style_header_align {
@@ -5464,8 +5489,6 @@ struct nk_context {
 /* public: can be accessed freely */
     struct nk_input input;
     struct nk_style style;
-    struct nk_style style_disabled;
-    struct nk_style style_enabled;
     struct nk_buffer memory;
     struct nk_clipboard clip;
     nk_flags last_widget_state;

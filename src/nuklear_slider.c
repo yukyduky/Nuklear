@@ -78,6 +78,7 @@ nk_draw_slider(struct nk_command_buffer *out, nk_flags state,
         bar_color = style->bar_normal;
         cursor = &style->cursor_normal;
     }
+
     /* calculate slider background bar */
     bar.x = bounds->x;
     bar.y = (visual_cursor->y + visual_cursor->h/2) - bounds->h/12;
@@ -93,26 +94,26 @@ nk_draw_slider(struct nk_command_buffer *out, nk_flags state,
     /* draw background */
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
-            nk_stroke_rect(out, *bounds, style->rounding, style->border, style->border_color);
+            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_stroke_rect(out, *bounds, style->rounding, style->border, nk_rgb_factor(style->border_color, style->color_factor));
             break;
     }
 
     /* draw slider bar */
-    nk_fill_rect(out, bar, style->rounding, bar_color);
-    nk_fill_rect(out, fill, style->rounding, style->bar_filled);
+    nk_fill_rect(out, bar, style->rounding, nk_rgb_factor(bar_color, style->color_factor));
+    nk_fill_rect(out, fill, style->rounding, nk_rgb_factor(style->bar_filled, style->color_factor));
 
     /* draw cursor */
     if (cursor->type == NK_STYLE_ITEM_IMAGE)
         nk_draw_image(out, *visual_cursor, &cursor->data.image, nk_white);
     else
-        nk_fill_circle(out, *visual_cursor, cursor->data.color);
+        nk_fill_circle(out, *visual_cursor, nk_rgb_factor(cursor->data.color, style->color_factor));
 }
 NK_LIB float
 nk_do_slider(nk_flags *state,

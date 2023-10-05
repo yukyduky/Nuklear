@@ -41,23 +41,26 @@ nk_draw_selectable(struct nk_command_buffer *out,
             text.text = style->text_normal_active;
         }
     }
+
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+
     /* draw selectable background and text */
     switch (background->type) {
         case NK_STYLE_ITEM_IMAGE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             text.background = background->data.color;
-            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
+            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
             break;
     }
     if (icon) {
-        if (img) nk_draw_image(out, *icon, img, nk_white);
+        if (img) nk_draw_image(out, *icon, img, nk_rgb_factor(nk_white, style->color_factor));
         else nk_draw_symbol(out, sym, *icon, text.background, text.text, 1, font);
     }
     nk_widget_text(out, *bounds, string, len, &text, align, font);

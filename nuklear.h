@@ -3697,6 +3697,7 @@ NK_API struct nk_color nk_rgb_f(float r, float g, float b);
 NK_API struct nk_color nk_rgb_fv(const float *rgb);
 NK_API struct nk_color nk_rgb_cf(struct nk_colorf c);
 NK_API struct nk_color nk_rgb_hex(const char *rgb);
+NK_API struct nk_color nk_rgb_factor(const struct nk_color col, const float factor);
 
 NK_API struct nk_color nk_rgba(int r, int g, int b, int a);
 NK_API struct nk_color nk_rgba_u32(nk_uint);
@@ -4929,6 +4930,8 @@ struct nk_style_item {
 struct nk_style_text {
     struct nk_color color;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_button {
@@ -4951,6 +4954,8 @@ struct nk_style_button {
     struct nk_vec2 padding;
     struct nk_vec2 image_padding;
     struct nk_vec2 touch_padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -4981,6 +4986,8 @@ struct nk_style_toggle {
     struct nk_vec2 touch_padding;
     float spacing;
     float border;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -5016,6 +5023,8 @@ struct nk_style_selectable {
     struct nk_vec2 padding;
     struct nk_vec2 touch_padding;
     struct nk_vec2 image_padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -5048,6 +5057,8 @@ struct nk_style_slider {
     struct nk_vec2 padding;
     struct nk_vec2 spacing;
     struct nk_vec2 cursor_size;
+    float color_factor;
+    float disabled_factor;
 
     /* optional buttons */
     int show_buttons;
@@ -5081,6 +5092,8 @@ struct nk_style_progress {
     float cursor_border;
     float cursor_rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional user callbacks */
     nk_handle userdata;
@@ -5107,6 +5120,8 @@ struct nk_style_scrollbar {
     float border_cursor;
     float rounding_cursor;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     /* optional buttons */
     int show_buttons;
@@ -5153,6 +5168,8 @@ struct nk_style_edit {
     struct nk_vec2 scrollbar_size;
     struct nk_vec2 padding;
     float row_padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_property {
@@ -5175,6 +5192,8 @@ struct nk_style_property {
     float border;
     float rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 
     struct nk_style_edit edit;
     struct nk_style_button inc_button;
@@ -5197,6 +5216,8 @@ struct nk_style_chart {
     float border;
     float rounding;
     struct nk_vec2 padding;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_combo {
@@ -5228,6 +5249,8 @@ struct nk_style_combo {
     struct nk_vec2 content_padding;
     struct nk_vec2 button_padding;
     struct nk_vec2 spacing;
+    float color_factor;
+    float disabled_factor;
 };
 
 struct nk_style_tab {
@@ -5250,6 +5273,8 @@ struct nk_style_tab {
     float indent;
     struct nk_vec2 padding;
     struct nk_vec2 spacing;
+    float color_factor;
+    float disabled_factor;
 };
 
 enum nk_style_header_align {
@@ -5686,8 +5711,6 @@ struct nk_context {
 /* public: can be accessed freely */
     struct nk_input input;
     struct nk_style style;
-    struct nk_style style_disabled;
-    struct nk_style style_enabled;
     struct nk_buffer memory;
     struct nk_clipboard clip;
     nk_flags last_widget_state;
@@ -7623,6 +7646,16 @@ nk_parse_hex(const char *p, int length)
         len++;
     }
     return i;
+}
+NK_API struct nk_color
+nk_rgb_factor(const struct nk_color col, const float factor)
+{
+    struct nk_color ret;
+    ret.r = col.r * factor;
+    ret.g = col.g * factor;
+    ret.b = col.b * factor;
+    ret.a = col.a;
+    return ret;
 }
 NK_API struct nk_color
 nk_rgba(int r, int g, int b, int a)
@@ -18262,6 +18295,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     text = &style->text;
     text->color = table[NK_COLOR_TEXT];
     text->padding = nk_vec2(0,0);
+    text->color_factor = 1.0f;
+    text->disabled_factor = 0.5f;
 
     /* default button */
     button = &style->button;
@@ -18281,6 +18316,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 1.0f;
     button->rounding        = 4.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18301,6 +18338,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18321,6 +18360,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 1.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18342,6 +18383,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     toggle->border_color    = nk_rgba(0,0,0,0);
     toggle->border          = 0.0f;
     toggle->spacing         = 4;
+    toggle->color_factor    = 1.0f;
+    toggle->disabled_factor = 0.5f;
 
     /* option toggle */
     toggle = &style->option;
@@ -18361,6 +18404,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     toggle->border_color    = nk_rgba(0,0,0,0);
     toggle->border          = 0.0f;
     toggle->spacing         = 4;
+    toggle->color_factor    = 1.0f;
+    toggle->disabled_factor = 0.5f;
 
     /* selectable */
     select = &style->selectable;
@@ -18382,6 +18427,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     select->touch_padding   = nk_vec2(0,0);
     select->userdata        = nk_handle_ptr(0);
     select->rounding        = 0.0f;
+    select->color_factor    = 1.0f;
+    select->disabled_factor = 0.5f;
     select->draw_begin      = 0;
     select->draw_end        = 0;
 
@@ -18407,6 +18454,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     slider->show_buttons    = nk_false;
     slider->bar_height      = 8;
     slider->rounding        = 0;
+    slider->color_factor    = 1.0f;
+    slider->disabled_factor = 0.5f;
     slider->draw_begin      = 0;
     slider->draw_end        = 0;
 
@@ -18426,6 +18475,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 1.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->slider.dec_button = style->slider.inc_button;
@@ -18447,6 +18498,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     prog->border            = 0;
     prog->cursor_rounding   = 0;
     prog->cursor_border     = 0;
+    prog->color_factor      = 1.0f;
+    prog->disabled_factor   = 0.5f;
     prog->draw_begin        = 0;
     prog->draw_end          = 0;
 
@@ -18470,6 +18523,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     scroll->rounding        = 0;
     scroll->border_cursor   = 0;
     scroll->rounding_cursor = 0;
+    scroll->color_factor    = 1.0f;
+    scroll->disabled_factor = 0.5f;
     scroll->draw_begin      = 0;
     scroll->draw_end        = 0;
     style->scrollv = style->scrollh;
@@ -18490,6 +18545,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 1.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->scrollh.dec_button = style->scrollh.inc_button;
@@ -18521,6 +18578,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->cursor_size       = 4;
     edit->border            = 1;
     edit->rounding          = 0;
+    edit->color_factor      = 1.0f;
+    edit->disabled_factor   = 0.5f;
 
     /* property */
     property = &style->property;
@@ -18540,6 +18599,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     property->rounding      = 10;
     property->draw_begin    = 0;
     property->draw_end      = 0;
+    property->color_factor  = 1.0f;
+    property->disabled_factor = 0.5f;
 
     /* property buttons */
     button = &style->property.dec_button;
@@ -18558,6 +18619,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->property.inc_button = style->property.dec_button;
@@ -18584,6 +18647,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->cursor_size       = 8;
     edit->border            = 0;
     edit->rounding          = 0;
+    edit->color_factor      = 1.0f;
+    edit->disabled_factor   = 0.5f;
 
     /* chart */
     chart = &style->chart;
@@ -18595,6 +18660,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     chart->padding          = nk_vec2(4,4);
     chart->border           = 0;
     chart->rounding         = 0;
+    chart->color_factor     = 1.0f;
+    chart->disabled_factor  = 0.5f;
 
     /* combo */
     combo = &style->combo;
@@ -18613,6 +18680,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     combo->spacing          = nk_vec2(4,0);
     combo->border           = 1;
     combo->rounding         = 0;
+    combo->color_factor     = 1.0f;
+    combo->disabled_factor  = 0.5f;
 
     /* combo button */
     button = &style->combo.button;
@@ -18631,6 +18700,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18646,6 +18717,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     tab->indent             = 10.0f;
     tab->border             = 1;
     tab->rounding           = 0;
+    tab->color_factor       = 1.0f;
+    tab->disabled_factor    = 0.5f;
 
     /* tab button */
     button = &style->tab.tab_minimize_button;
@@ -18664,6 +18737,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->tab.tab_maximize_button =*button;
@@ -18685,6 +18760,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->tab.node_maximize_button =*button;
@@ -18722,6 +18799,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18742,6 +18821,8 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->text_alignment  = NK_TEXT_CENTERED;
     button->border          = 0.0f;
     button->rounding        = 0.0f;
+    button->color_factor    = 1.0f;
+    button->disabled_factor = 0.5f;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18778,255 +18859,6 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     win->contextual_padding = nk_vec2(4,4);
     win->menu_padding = nk_vec2(4,4);
     win->tooltip_padding = nk_vec2(4,4);
-
-
-    /* ---- Disabled style ---- */
-
-    ctx->style_enabled = *style;
-    ctx->style_disabled = *style;
-    style = &ctx->style_disabled;
-    float grey_factor = 0.4f;
-
-        /* default button */
-    button = &style->button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* contextual button */
-    button = &style->contextual_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* menu button */
-    button = &style->menu_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* checkbox toggle */
-    toggle = &style->checkbox;
-    toggle->normal.data.color.r *= grey_factor;
-    toggle->normal.data.color.g *= grey_factor;
-    toggle->normal.data.color.b *= grey_factor;
-    toggle->cursor_normal.data.color.r *= grey_factor;
-    toggle->cursor_normal.data.color.g *= grey_factor;
-    toggle->cursor_normal.data.color.b *= grey_factor;
-    toggle->text_normal.r *= grey_factor;
-    toggle->text_normal.g *= grey_factor;
-    toggle->text_normal.b *= grey_factor;
-
-    /* option toggle */
-    toggle = &style->option;
-    toggle->normal.data.color.r *= grey_factor;
-    toggle->normal.data.color.g *= grey_factor;
-    toggle->normal.data.color.b *= grey_factor;
-    toggle->cursor_normal.data.color.r *= grey_factor;
-    toggle->cursor_normal.data.color.g *= grey_factor;
-    toggle->cursor_normal.data.color.b *= grey_factor;
-    toggle->text_normal.r *= grey_factor;
-    toggle->text_normal.g *= grey_factor;
-    toggle->text_normal.b *= grey_factor;
-
-    /* selectable */
-    select = &style->selectable;
-    select->normal.data.color.r *= grey_factor;
-    select->normal.data.color.g *= grey_factor;
-    select->normal.data.color.b *= grey_factor;
-    select->normal_active.data.color.r *= grey_factor;
-    select->normal_active.data.color.g *= grey_factor;
-    select->normal_active.data.color.b *= grey_factor;
-    select->text_normal.r *= grey_factor;
-    select->text_normal.g *= grey_factor;
-    select->text_normal.b *= grey_factor;
-
-    /* slider */
-    slider = &style->slider;
-    slider->normal = nk_style_item_hide();
-    slider->bar_normal.r *= grey_factor;
-    slider->bar_normal.g *= grey_factor;
-    slider->bar_normal.b *= grey_factor;
-    slider->cursor_normal.data.color.r *= grey_factor;
-    slider->cursor_normal.data.color.g *= grey_factor;
-    slider->cursor_normal.data.color.b *= grey_factor;
-
-    /* slider buttons */
-    button = &style->slider.inc_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->border_color.r *= grey_factor;
-    button->border_color.g *= grey_factor;
-    button->border_color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* progressbar */
-    prog = &style->progress;
-    prog->normal.data.color.r *= grey_factor;
-    prog->normal.data.color.g *= grey_factor;
-    prog->normal.data.color.b *= grey_factor;
-    prog->cursor_normal.data.color.r *= grey_factor;
-    prog->cursor_normal.data.color.g *= grey_factor;
-    prog->cursor_normal.data.color.b *= grey_factor;
-
-    /* edit */
-    edit = &style->edit;
-    edit->normal.data.color.r *= grey_factor;
-    edit->normal.data.color.g *= grey_factor;
-    edit->normal.data.color.b *= grey_factor;
-    edit->active.data.color.r *= grey_factor;
-    edit->active.data.color.g *= grey_factor;
-    edit->active.data.color.b *= grey_factor;
-    edit->cursor_normal.r *= grey_factor;
-    edit->cursor_normal.g *= grey_factor;
-    edit->cursor_normal.b *= grey_factor;
-    edit->cursor_text_normal.r *= grey_factor;
-    edit->cursor_text_normal.g *= grey_factor;
-    edit->cursor_text_normal.b *= grey_factor;
-    edit->text_normal.r *= grey_factor;
-    edit->text_normal.g *= grey_factor;
-    edit->text_normal.b *= grey_factor;
-    edit->text_active.r *= grey_factor;
-    edit->text_active.g *= grey_factor;
-    edit->text_active.b *= grey_factor;
-    edit->selected_normal.r *= grey_factor;
-    edit->selected_normal.g *= grey_factor;
-    edit->selected_normal.b *= grey_factor;
-    edit->selected_hover.r *= grey_factor;
-    edit->selected_hover.g *= grey_factor;
-    edit->selected_hover.b *= grey_factor;
-    edit->selected_text_normal.r *= grey_factor;
-    edit->selected_text_normal.g *= grey_factor;
-    edit->selected_text_normal.b *= grey_factor;
-    edit->selected_text_hover.r *= grey_factor;
-    edit->selected_text_hover.g *= grey_factor;
-    edit->selected_text_hover.b *= grey_factor;
-
-    /* property */
-    property = &style->property;
-    property->normal.data.color.r *= grey_factor;
-    property->normal.data.color.g *= grey_factor;
-    property->normal.data.color.b *= grey_factor;
-    property->border_color.r *= grey_factor;
-    property->border_color.g *= grey_factor;
-    property->border_color.b *= grey_factor;
-    property->label_normal.r *= grey_factor;
-    property->label_normal.g *= grey_factor;
-    property->label_normal.b *= grey_factor;
-
-    /* property buttons */
-    button = &style->property.dec_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* property edit */
-    edit = &style->property.edit;
-    edit->normal.data.color.r *= grey_factor;
-    edit->normal.data.color.g *= grey_factor;
-    edit->normal.data.color.b *= grey_factor;
-    edit->cursor_normal.r *= grey_factor;
-    edit->cursor_normal.g *= grey_factor;
-    edit->cursor_normal.b *= grey_factor;
-    edit->cursor_text_normal.r *= grey_factor;
-    edit->cursor_text_normal.g *= grey_factor;
-    edit->cursor_text_normal.b *= grey_factor;
-    edit->text_normal.r *= grey_factor;
-    edit->text_normal.g *= grey_factor;
-    edit->text_normal.b *= grey_factor;
-    edit->selected_normal.r *= grey_factor;
-    edit->selected_normal.g *= grey_factor;
-    edit->selected_normal.b *= grey_factor;
-    edit->selected_hover.r *= grey_factor;
-    edit->selected_hover.g *= grey_factor;
-    edit->selected_hover.b *= grey_factor;
-    edit->selected_text_normal.r *= grey_factor;
-    edit->selected_text_normal.g *= grey_factor;
-    edit->selected_text_normal.b *= grey_factor;
-    edit->selected_text_hover.r *= grey_factor;
-    edit->selected_text_hover.g *= grey_factor;
-    edit->selected_text_hover.b *= grey_factor;
-
-    /* chart */
-    chart = &style->chart;
-    chart->border_color.r *= grey_factor;
-    chart->border_color.g *= grey_factor;
-    chart->border_color.b *= grey_factor;
-    chart->selected_color.r *= grey_factor;
-    chart->selected_color.g *= grey_factor;
-    chart->selected_color.b *= grey_factor;
-    chart->color.r *= grey_factor;
-    chart->color.g *= grey_factor;
-    chart->color.b *= grey_factor;
-
-    /* combo */
-    combo = &style->combo;
-    combo->normal.data.color.r *= grey_factor;
-    combo->normal.data.color.g *= grey_factor;
-    combo->normal.data.color.b *= grey_factor;
-    combo->border_color.r *= grey_factor;
-    combo->border_color.g *= grey_factor;
-    combo->border_color.b *= grey_factor;
-    combo->label_normal.r *= grey_factor;
-    combo->label_normal.g *= grey_factor;
-    combo->label_normal.b *= grey_factor;
-
-    /* combo button */
-    button = &style->combo.button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* tab */
-    tab = &style->tab;
-    tab->text.r *= grey_factor;
-    tab->text.g *= grey_factor;
-    tab->text.b *= grey_factor;
-
-    /* tab button */
-    button = &style->tab.tab_minimize_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
-
-    /* node button */
-    button = &style->tab.node_minimize_button;
-    button->normal.data.color.r *= grey_factor;
-    button->normal.data.color.g *= grey_factor;
-    button->normal.data.color.b *= grey_factor;
-    button->text_normal.r *= grey_factor;
-    button->text_normal.g *= grey_factor;
-    button->text_normal.b *= grey_factor;
 }
 NK_API void
 nk_style_set_font(struct nk_context *ctx, const struct nk_user_font *font)
@@ -19267,7 +19099,6 @@ nk_free(struct nk_context *ctx)
 
     nk_zero(&ctx->input, sizeof(ctx->input));
     nk_zero(&ctx->style, sizeof(ctx->style));
-    nk_zero(&ctx->style_enabled, sizeof(ctx->style_enabled));
     nk_zero(&ctx->memory, sizeof(ctx->memory));
 
     ctx->seq = 0;
@@ -21324,6 +21155,7 @@ nk_contextual_begin(struct nk_context *ctx, nk_flags flags, struct nk_vec2 size,
     struct nk_window *win;
     struct nk_window *popup;
     struct nk_rect body;
+    struct nk_input* in;
 
     NK_STORAGE const struct nk_rect null_rect = {-1,-1,0,0};
     int is_clicked = 0;
@@ -21340,40 +21172,46 @@ nk_contextual_begin(struct nk_context *ctx, nk_flags flags, struct nk_vec2 size,
     ++win->popup.con_count;
     if (ctx->current != ctx->active)
         return 0;
-
+    
     /* check if currently active contextual is active */
     popup = win->popup.win;
     is_open = (popup && win->popup.type == NK_PANEL_CONTEXTUAL);
-    is_clicked = nk_input_mouse_clicked(&ctx->input, NK_BUTTON_RIGHT, trigger_bounds);
-    if (win->popup.active_con && win->popup.con_count != win->popup.active_con)
-        return 0;
-    if (!is_open && win->popup.active_con)
-        win->popup.active_con = 0;
-    if ((!is_open && !is_clicked))
-        return 0;
 
-    /* calculate contextual position on click */
-    win->popup.active_con = win->popup.con_count;
-    if (is_clicked) {
-        body.x = ctx->input.mouse.pos.x;
-        body.y = ctx->input.mouse.pos.y;
-    } else {
-        body.x = popup->bounds.x;
-        body.y = popup->bounds.y;
-    }
-    body.w = size.x;
-    body.h = size.y;
+    in = win->widgets_disabled ? 0 : &ctx->input;
+    if (in) {
+        is_clicked = nk_input_mouse_clicked(in, NK_BUTTON_RIGHT, trigger_bounds);
+        if (win->popup.active_con && win->popup.con_count != win->popup.active_con)
+            return 0;
+        if (!is_open && win->popup.active_con)
+            win->popup.active_con = 0;
+        if ((!is_open && !is_clicked))
+            return 0;
 
-    /* start nonblocking contextual popup */
-    ret = nk_nonblock_begin(ctx, flags|NK_WINDOW_NO_SCROLLBAR, body,
+        /* calculate contextual position on click */
+        win->popup.active_con = win->popup.con_count;
+        if (is_clicked) {
+            body.x = in->mouse.pos.x;
+            body.y = in->mouse.pos.y;
+        } else {
+            body.x = popup->bounds.x;
+            body.y = popup->bounds.y;
+        }
+
+        body.w = size.x;
+        body.h = size.y;
+
+        /* start nonblocking contextual popup */
+        ret = nk_nonblock_begin(ctx, flags | NK_WINDOW_NO_SCROLLBAR, body,
             null_rect, NK_PANEL_CONTEXTUAL);
-    if (ret) win->popup.type = NK_PANEL_CONTEXTUAL;
-    else {
-        win->popup.active_con = 0;
-        win->popup.type = NK_PANEL_NONE;
-        if (win->popup.win)
-            win->popup.win->flags = 0;
+        if (ret) win->popup.type = NK_PANEL_CONTEXTUAL;
+        else {
+            win->popup.active_con = 0;
+            win->popup.type = NK_PANEL_NONE;
+            if (win->popup.win)
+                win->popup.win->flags = 0;
+        }
     }
+    
     return ret;
 }
 NK_API nk_bool
@@ -23536,6 +23374,7 @@ NK_API void
 nk_widget_disable_begin(struct nk_context* ctx)
 {
     struct nk_window* win;
+    struct nk_style* style;
 
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -23544,14 +23383,47 @@ nk_widget_disable_begin(struct nk_context* ctx)
         return;
 
     win = ctx->current;
-    ctx->style = ctx->style_disabled;
+    style = &ctx->style;
 
     win->widgets_disabled = nk_true;
+
+    style->button.color_factor = style->button.disabled_factor;
+    style->chart.color_factor = style->chart.disabled_factor;
+    style->checkbox.color_factor = style->checkbox.disabled_factor;
+    style->combo.color_factor = style->combo.disabled_factor;
+    style->combo.button.color_factor = style->combo.button.disabled_factor;
+    style->contextual_button.color_factor = style->contextual_button.disabled_factor;
+    style->edit.color_factor = style->edit.disabled_factor;
+    style->edit.scrollbar.color_factor = style->edit.scrollbar.disabled_factor;
+    style->menu_button.color_factor = style->menu_button.disabled_factor;
+    style->option.color_factor = style->option.disabled_factor;
+    style->progress.color_factor = style->progress.disabled_factor;
+    style->property.color_factor = style->property.disabled_factor;
+    style->property.inc_button.color_factor = style->property.inc_button.disabled_factor;
+    style->property.dec_button.color_factor = style->property.dec_button.disabled_factor;
+    style->property.edit.color_factor = style->property.edit.disabled_factor;
+    style->scrollh.color_factor = style->scrollh.disabled_factor;
+    style->scrollh.inc_button.color_factor = style->scrollh.inc_button.disabled_factor;
+    style->scrollh.dec_button.color_factor = style->scrollh.dec_button.disabled_factor;
+    style->scrollv.color_factor = style->scrollv.disabled_factor;
+    style->scrollv.inc_button.color_factor = style->scrollv.inc_button.disabled_factor;
+    style->scrollv.dec_button.color_factor = style->scrollv.dec_button.disabled_factor;
+    style->selectable.color_factor = style->selectable.disabled_factor;
+    style->slider.color_factor = style->slider.disabled_factor;
+    style->slider.inc_button.color_factor = style->slider.inc_button.disabled_factor;
+    style->slider.dec_button.color_factor = style->slider.dec_button.disabled_factor;
+    style->tab.color_factor = style->tab.disabled_factor;
+    style->tab.node_maximize_button.color_factor = style->tab.node_maximize_button.disabled_factor;
+    style->tab.node_minimize_button.color_factor = style->tab.node_minimize_button.disabled_factor;
+    style->tab.tab_maximize_button.color_factor = style->tab.tab_maximize_button.disabled_factor;
+    style->tab.tab_minimize_button.color_factor = style->tab.tab_minimize_button.disabled_factor;
+    style->text.color_factor = style->text.disabled_factor;
 }
 NK_API void
 nk_widget_disable_end(struct nk_context* ctx)
 {
     struct nk_window* win;
+    struct nk_style* style;
 
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
@@ -23560,9 +23432,41 @@ nk_widget_disable_end(struct nk_context* ctx)
         return;
 
     win = ctx->current;
-    ctx->style = ctx->style_enabled;
+    style = &ctx->style;
 
     win->widgets_disabled = nk_false;
+
+    style->button.color_factor = 1.0f;
+    style->chart.color_factor = 1.0f;
+    style->checkbox.color_factor = 1.0f;
+    style->combo.color_factor = 1.0f;
+    style->combo.button.color_factor = 1.0f;
+    style->contextual_button.color_factor = 1.0f;
+    style->edit.color_factor = 1.0f;
+    style->edit.scrollbar.color_factor = 1.0f;
+    style->menu_button.color_factor = 1.0f;
+    style->option.color_factor = 1.0f;
+    style->progress.color_factor = 1.0f;
+    style->property.color_factor = 1.0f;
+    style->property.inc_button.color_factor = 1.0f;
+    style->property.dec_button.color_factor = 1.0f;
+    style->property.edit.color_factor = 1.0f;
+    style->scrollh.color_factor = 1.0f;
+    style->scrollh.inc_button.color_factor = 1.0f;
+    style->scrollh.dec_button.color_factor = 1.0f;
+    style->scrollv.color_factor = 1.0f;
+    style->scrollv.inc_button.color_factor = 1.0f;
+    style->scrollv.dec_button.color_factor = 1.0f;
+    style->selectable.color_factor = 1.0f;
+    style->slider.color_factor = 1.0f;
+    style->slider.inc_button.color_factor = 1.0f;
+    style->slider.dec_button.color_factor = 1.0f;
+    style->tab.color_factor = 1.0f;
+    style->tab.node_maximize_button.color_factor = 1.0f;
+    style->tab.node_minimize_button.color_factor = 1.0f;
+    style->tab.tab_maximize_button.color_factor = 1.0f;
+    style->tab.tab_minimize_button.color_factor = 1.0f;
+    style->text.color_factor = 1.0f;
 }
 
 
@@ -23755,6 +23659,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 if (end_of_color) {
                     colors_found++;
                     textColor = nk_rgb_hex(&string[i + code_offset + 1]);
+                    textColor = nk_rgb_factor(textColor, ctx->style.text.color_factor);
                 }
 
                 end_of_color = !end_of_color;
@@ -23934,7 +23839,8 @@ nk_text_colored(struct nk_context *ctx, const char *str, int len,
     text.padding.x = item_padding.x;
     text.padding.y = item_padding.y;
     text.background = style->window.background;
-    text.text = color;
+    text.text = nk_rgb_factor(color, style->text.color_factor);
+
     nk_widget_text(&win->buffer, bounds, str, len, &text, alignment, style->font);
 }
 NK_API void
@@ -23961,7 +23867,7 @@ nk_text_wrap_colored(struct nk_context *ctx, const char *str,
 	text.padding.x = item_padding.x;
 	text.padding.y = item_padding.y;
 	text.background = style->window.background;
-	text.text = color;
+	text.text = nk_rgb_factor(color, style->text.color_factor);
 
 	nk_widget_text_wrap(ctx, &win->buffer, bounds, str, len, &text, style->font);
 }
@@ -23989,7 +23895,7 @@ nk_text_wrap_coded(struct nk_context *ctx, const char *str,
 	text.padding.x = item_padding.x;
 	text.padding.y = item_padding.y;
 	text.background = style->window.background;
-	text.text = color;
+    text.text = nk_rgb_factor(color, style->text.color_factor);
 
 	nk_widget_text_wrap_coded(ctx, &win->buffer, bounds, str, len, &text, style->font, links, num_links, icons, num_icons);
 }
@@ -24492,16 +24398,16 @@ nk_draw_button(struct nk_command_buffer *out,
         background = &style->active;
     else background = &style->normal;
 
-    switch(background->type) {
+    switch (background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
-            nk_stroke_rect(out, *bounds, style->rounding, style->border, style->border_color);
+            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_stroke_rect(out, *bounds, style->rounding, style->border, nk_rgb_factor(style->border_color, style->color_factor));
             break;
     }
     return background;
@@ -24551,6 +24457,8 @@ nk_draw_button_text(struct nk_command_buffer *out,
         text.text = style->text_active;
     else text.text = style->text_normal;
 
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+
     text.padding = nk_vec2(0,0);
     nk_widget_text(out, *content, txt, len, &text, text_alignment, font);
 }
@@ -24598,6 +24506,7 @@ nk_draw_button_symbol(struct nk_command_buffer *out,
     else if (state & NK_WIDGET_STATE_ACTIVED)
         sym = style->text_active;
     else sym = style->text_normal;
+    sym = nk_rgb_factor(sym, style->color_factor);
     nk_draw_symbol(out, type, *content, bg, sym, 1, font);
 }
 NK_LIB nk_bool
@@ -24686,6 +24595,8 @@ nk_draw_button_text_symbol(struct nk_command_buffer *out,
         text.text = style->text_normal;
     }
 
+    sym = nk_rgb_factor(sym, style->color_factor);
+    text.text = nk_rgb_factor(text.text, style->color_factor);
     text.padding = nk_vec2(0,0);
     nk_draw_symbol(out, type, *symbol, style->text_background, sym, 0, font);
     nk_widget_text(out, *label, str, len, &text, NK_TEXT_CENTERED, font);
@@ -24743,7 +24654,8 @@ nk_draw_button_text_image(struct nk_command_buffer *out,
         text.text = style->text_active;
     else text.text = style->text_normal;
 
-    text.padding = nk_vec2(0,0);
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+    text.padding = nk_vec2(0, 0);
     nk_widget_text(out, *label, str, len, &text, NK_TEXT_CENTERED, font);
     nk_draw_image(out, *image, img, nk_white);
 }
@@ -25114,10 +25026,12 @@ nk_draw_checkbox(struct nk_command_buffer *out,
         text.text = style->text_normal;
     }
 
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+
     /* draw background and cursor */
     if (background->type == NK_STYLE_ITEM_COLOR) {
-        nk_fill_rect(out, *selector, 0, style->border_color);
-        nk_fill_rect(out, nk_shrink_rect(*selector, style->border), 0, background->data.color);
+        nk_fill_rect(out, *selector, 0, nk_rgb_factor(style->border_color, style->color_factor));
+        nk_fill_rect(out, nk_shrink_rect(*selector, style->border), 0, nk_rgb_factor(background->data.color, style->color_factor));
     } else nk_draw_image(out, *selector, &background->data.image, nk_white);
     if (active) {
         if (cursor->type == NK_STYLE_ITEM_IMAGE)
@@ -25156,14 +25070,16 @@ nk_draw_option(struct nk_command_buffer *out,
         text.text = style->text_normal;
     }
 
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+
     /* draw background and cursor */
     if (background->type == NK_STYLE_ITEM_COLOR) {
-        nk_fill_circle(out, *selector, style->border_color);
-        nk_fill_circle(out, nk_shrink_rect(*selector, style->border), background->data.color);
-    } else nk_draw_image(out, *selector, &background->data.image, nk_white);
+        nk_fill_circle(out, *selector, nk_rgb_factor(style->border_color, style->color_factor));
+        nk_fill_circle(out, nk_shrink_rect(*selector, style->border), nk_rgb_factor(background->data.color, style->color_factor));
+    } else nk_draw_image(out, *selector, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
     if (active) {
         if (cursor->type == NK_STYLE_ITEM_IMAGE)
-            nk_draw_image(out, *cursors, &cursor->data.image, nk_white);
+            nk_draw_image(out, *cursors, &cursor->data.image, nk_rgb_factor(nk_white, style->color_factor));
         else nk_fill_circle(out, *cursors, cursor->data.color);
     }
 
@@ -25429,23 +25345,26 @@ nk_draw_selectable(struct nk_command_buffer *out,
             text.text = style->text_normal_active;
         }
     }
+
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+
     /* draw selectable background and text */
     switch (background->type) {
         case NK_STYLE_ITEM_IMAGE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             text.background = background->data.color;
-            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
+            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
             break;
     }
     if (icon) {
-        if (img) nk_draw_image(out, *icon, img, nk_white);
+        if (img) nk_draw_image(out, *icon, img, nk_rgb_factor(nk_white, style->color_factor));
         else nk_draw_symbol(out, sym, *icon, text.background, text.text, 1, font);
     }
     nk_widget_text(out, *bounds, string, len, &text, align, font);
@@ -25796,6 +25715,7 @@ nk_draw_slider(struct nk_command_buffer *out, nk_flags state,
         bar_color = style->bar_normal;
         cursor = &style->cursor_normal;
     }
+
     /* calculate slider background bar */
     bar.x = bounds->x;
     bar.y = (visual_cursor->y + visual_cursor->h/2) - bounds->h/12;
@@ -25811,26 +25731,26 @@ nk_draw_slider(struct nk_command_buffer *out, nk_flags state,
     /* draw background */
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
-            nk_stroke_rect(out, *bounds, style->rounding, style->border, style->border_color);
+            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_stroke_rect(out, *bounds, style->rounding, style->border, nk_rgb_factor(style->border_color, style->color_factor));
             break;
     }
 
     /* draw slider bar */
-    nk_fill_rect(out, bar, style->rounding, bar_color);
-    nk_fill_rect(out, fill, style->rounding, style->bar_filled);
+    nk_fill_rect(out, bar, style->rounding, nk_rgb_factor(bar_color, style->color_factor));
+    nk_fill_rect(out, fill, style->rounding, nk_rgb_factor(style->bar_filled, style->color_factor));
 
     /* draw cursor */
     if (cursor->type == NK_STYLE_ITEM_IMAGE)
         nk_draw_image(out, *visual_cursor, &cursor->data.image, nk_white);
     else
-        nk_fill_circle(out, *visual_cursor, cursor->data.color);
+        nk_fill_circle(out, *visual_cursor, nk_rgb_factor(cursor->data.color, style->color_factor));
 }
 NK_LIB float
 nk_do_slider(nk_flags *state,
@@ -26042,10 +25962,10 @@ nk_draw_progress(struct nk_command_buffer *out, nk_flags state,
     /* draw background */
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             nk_fill_rect(out, *bounds, style->rounding, background->data.color);
@@ -26056,14 +25976,14 @@ nk_draw_progress(struct nk_command_buffer *out, nk_flags state,
     /* draw cursor */
     switch(cursor->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, *scursor, &cursor->data.image, nk_white);
+            nk_draw_image(out, *scursor, &cursor->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, *scursor, &cursor->data.slice, nk_white);
+            nk_draw_nine_slice(out, *scursor, &cursor->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(out, *scursor, style->rounding, cursor->data.color);
-            nk_stroke_rect(out, *scursor, style->rounding, style->border, style->border_color);
+            nk_fill_rect(out, *scursor, style->rounding, nk_rgb_factor(cursor->data.color, style->color_factor));
+            nk_stroke_rect(out, *scursor, style->rounding, style->border, nk_rgb_factor(style->border_color, style->color_factor));
             break;
     }
 }
@@ -27569,6 +27489,9 @@ nk_edit_draw_text(struct nk_command_buffer *out,
     float line_offset = 0;
     int line_count = 0;
 
+    foreground = nk_rgb_factor(foreground, style->color_factor);
+    background = nk_rgb_factor(background, style->color_factor);
+
     struct nk_text txt;
     txt.padding = nk_vec2(0,0);
     txt.background = background;
@@ -27811,14 +27734,14 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
     /* draw background frame */
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(out, bounds, &background->data.image, nk_white);
+            nk_draw_image(out, bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(out, bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(out, bounds, style->rounding, background->data.color);
-            nk_stroke_rect(out, bounds, style->rounding, style->border, style->border_color);
+            nk_fill_rect(out, bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_stroke_rect(out, bounds, style->rounding, style->border, nk_rgb_factor(style->border_color, style->color_factor));
             break;
     }}
 
@@ -28032,6 +27955,9 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
             edit->select_end = 0;
         }
 
+        cursor_color = nk_rgb_factor(cursor_color, style->color_factor);
+        cursor_text_color = nk_rgb_factor(cursor_text_color, style->color_factor);
+
         if (edit->select_start == edit->select_end) {
             /* no selection so just draw the complete text */
             const char *begin = nk_str_get_const(&edit->string);
@@ -28138,6 +28064,10 @@ nk_do_edit(nk_flags *state, struct nk_command_buffer *out,
             background_color = nk_rgba(0,0,0,0);
         else
             background_color = background->data.color;
+
+        background_color = nk_rgb_factor(background_color, style->color_factor);
+        text_color = nk_rgb_factor(text_color, style->color_factor);
+
         nk_edit_draw_text(out, style, area.x - edit->scrollbar.x,
             area.y - edit->scrollbar.y, 0, begin, l, row_height, font,
             background_color, text_color, nk_false);
@@ -28393,20 +28323,22 @@ nk_draw_property(struct nk_command_buffer *out, const struct nk_style_property *
         text.text = style->label_normal;
     }
 
+    text.text = nk_rgb_factor(text.text, style->color_factor);
+
     /* draw background */
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_image(out, *bounds, &background->data.image, nk_white);
+            nk_draw_image(out, *bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(out, *bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             text.background = background->data.color;
-            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
-            nk_stroke_rect(out, *bounds, style->rounding, style->border, background->data.color);
+            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_stroke_rect(out, *bounds, style->rounding, style->border, nk_rgb_factor(background->data.color, style->color_factor));
             break;
     }
 
@@ -28860,7 +28792,7 @@ nk_chart_begin_colored(struct nk_context *ctx, enum nk_chart_type type,
     {struct nk_chart_slot *slot = &chart->slots[chart->slot++];
     slot->type = type;
     slot->count = count;
-    slot->color = color;
+    slot->color = nk_rgb_factor(color, style->color_factor);
     slot->highlight = highlight;
     slot->min = NK_MIN(min_value, max_value);
     slot->max = NK_MAX(min_value, max_value);
@@ -28871,15 +28803,15 @@ nk_chart_begin_colored(struct nk_context *ctx, enum nk_chart_type type,
 
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(&win->buffer, bounds, &background->data.image, nk_white);
+            nk_draw_image(&win->buffer, bounds, &background->data.image, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(&win->buffer, bounds, &background->data.slice, nk_white);
+            nk_draw_nine_slice(&win->buffer, bounds, &background->data.slice, nk_rgb_factor(nk_white, style->color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(&win->buffer, bounds, style->rounding, style->border_color);
+            nk_fill_rect(&win->buffer, bounds, style->rounding, nk_rgb_factor(style->border_color, style->color_factor));
             nk_fill_rect(&win->buffer, nk_shrink_rect(bounds, style->border),
-                style->rounding, style->background.data.color);
+                style->rounding, nk_rgb_factor(style->background.data.color, style->color_factor));
             break;
     }
     return 1;
@@ -28896,6 +28828,8 @@ nk_chart_add_slot_colored(struct nk_context *ctx, const enum nk_chart_type type,
     struct nk_color color, struct nk_color highlight,
     int count, float min_value, float max_value)
 {
+    const struct nk_style_chart* style;
+
     NK_ASSERT(ctx);
     NK_ASSERT(ctx->current);
     NK_ASSERT(ctx->current->layout);
@@ -28903,12 +28837,14 @@ nk_chart_add_slot_colored(struct nk_context *ctx, const enum nk_chart_type type,
     if (!ctx || !ctx->current || !ctx->current->layout) return;
     if (ctx->current->layout->chart.slot >= NK_CHART_MAX_SLOT) return;
 
+    style = &ctx->style.chart;
+
     /* add another slot into the graph */
     {struct nk_chart *chart = &ctx->current->layout->chart;
     struct nk_chart_slot *slot = &chart->slots[chart->slot++];
     slot->type = type;
     slot->count = count;
-    slot->color = color;
+    slot->color = nk_rgb_factor(color, style->color_factor);
     slot->highlight = highlight;
     slot->min = NK_MIN(min_value, max_value);
     slot->max = NK_MAX(min_value, max_value);
@@ -28926,7 +28862,7 @@ nk_chart_push_line(struct nk_context *ctx, struct nk_window *win,
     struct nk_chart *g, float value, int slot)
 {
     struct nk_panel *layout = win->layout;
-    const struct nk_input *i = &ctx->input;
+    const struct nk_input *i = ctx->current->widgets_disabled ? 0 : &ctx->input;
     struct nk_command_buffer *out = &win->buffer;
 
     nk_flags ret = 0;
@@ -28952,7 +28888,7 @@ nk_chart_push_line(struct nk_context *ctx, struct nk_window *win,
         bounds.w = bounds.h = 4;
 
         color = g->slots[slot].color;
-        if (!(layout->flags & NK_WINDOW_ROM) &&
+        if (!(layout->flags & NK_WINDOW_ROM) && i &&
             NK_INBOX(i->mouse.pos.x,i->mouse.pos.y, g->slots[slot].last.x-3, g->slots[slot].last.y-3, 6, 6)){
             ret = nk_input_is_mouse_hovering_rect(i, bounds) ? NK_CHART_HOVERING : 0;
             ret |= (i->mouse.buttons[NK_BUTTON_LEFT].down &&
@@ -28975,7 +28911,7 @@ nk_chart_push_line(struct nk_context *ctx, struct nk_window *win,
     bounds.w = bounds.h = 6;
 
     /* user selection of current data point */
-    if (!(layout->flags & NK_WINDOW_ROM)) {
+    if (!(layout->flags & NK_WINDOW_ROM) && i) {
         if (nk_input_is_mouse_hovering_rect(i, bounds)) {
             ret = NK_CHART_HOVERING;
             ret |= (!i->mouse.buttons[NK_BUTTON_LEFT].down &&
@@ -28996,7 +28932,7 @@ nk_chart_push_column(const struct nk_context *ctx, struct nk_window *win,
     struct nk_chart *chart, float value, int slot)
 {
     struct nk_command_buffer *out = &win->buffer;
-    const struct nk_input *in = &ctx->input;
+    const struct nk_input *in = ctx->current->widgets_disabled ? 0 : &ctx->input;
     struct nk_panel *layout = win->layout;
 
     float ratio;
@@ -29026,7 +28962,7 @@ nk_chart_push_column(const struct nk_context *ctx, struct nk_window *win,
     item.x = item.x + ((float)chart->slots[slot].index);
 
     /* user chart bar selection */
-    if (!(layout->flags & NK_WINDOW_ROM) &&
+    if (!(layout->flags & NK_WINDOW_ROM) && in &&
         NK_INBOX(in->mouse.pos.x,in->mouse.pos.y,item.x,item.y,item.w,item.h)) {
         ret = NK_CHART_HOVERING;
         ret |= (!in->mouse.buttons[NK_BUTTON_LEFT].down &&
@@ -29423,19 +29359,21 @@ nk_combo_begin_text(struct nk_context *ctx, const char *selected, int len,
         text.text = style->combo.label_normal;
     }
 
+    text.text = nk_rgb_factor(text.text, style->combo.color_factor);
+
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_image(&win->buffer, header, &background->data.image, nk_white);
+            nk_draw_image(&win->buffer, header, &background->data.image, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_white);
+            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             text.background = background->data.color;
-            nk_fill_rect(&win->buffer, header, style->combo.rounding, background->data.color);
-            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, style->combo.border_color);
+            nk_fill_rect(&win->buffer, header, style->combo.rounding, nk_rgb_factor(background->data.color, style->combo.color_factor));
+            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, nk_rgb_factor(style->combo.border_color, style->combo.color_factor));
             break;
     }
     {
@@ -29528,14 +29466,14 @@ nk_combo_begin_color(struct nk_context *ctx, struct nk_color color, struct nk_ve
 
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(&win->buffer, header, &background->data.image, nk_white);
+            nk_draw_image(&win->buffer, header, &background->data.image, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_white);
+            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(&win->buffer, header, style->combo.rounding, background->data.color);
-            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, style->combo.border_color);
+            nk_fill_rect(&win->buffer, header, style->combo.rounding, nk_rgb_factor(background->data.color, style->combo.color_factor));
+            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, nk_rgb_factor(style->combo.border_color, style->combo.color_factor));
             break;
     }
     {
@@ -29573,7 +29511,7 @@ nk_combo_begin_color(struct nk_context *ctx, struct nk_color color, struct nk_ve
             bounds.w = (button.x - (style->combo.content_padding.x + style->combo.spacing.x)) - bounds.x;
         else
             bounds.w = header.w - 4 * style->combo.content_padding.x;
-        nk_fill_rect(&win->buffer, bounds, 0, color);
+        nk_fill_rect(&win->buffer, bounds, 0, nk_rgb_factor(color, style->combo.color_factor));
 
         /* draw open/close button */
         if (draw_button_symbol)
@@ -29624,19 +29562,21 @@ nk_combo_begin_symbol(struct nk_context *ctx, enum nk_symbol_type symbol, struct
         symbol_color = style->combo.symbol_hover;
     }
 
+    symbol_color = nk_rgb_factor(symbol_color, style->combo.color_factor);
+
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
             sym_background = nk_rgba(0, 0, 0, 0);
-            nk_draw_image(&win->buffer, header, &background->data.image, nk_white);
+            nk_draw_image(&win->buffer, header, &background->data.image, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
             sym_background = nk_rgba(0, 0, 0, 0);
-            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_white);
+            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             sym_background = background->data.color;
-            nk_fill_rect(&win->buffer, header, style->combo.rounding, background->data.color);
-            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, style->combo.border_color);
+            nk_fill_rect(&win->buffer, header, style->combo.rounding, nk_rgb_factor(background->data.color, style->combo.color_factor));
+            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, nk_rgb_factor(style->combo.border_color, style->combo.color_factor));
             break;
     }
     {
@@ -29721,19 +29661,22 @@ nk_combo_begin_symbol_text(struct nk_context *ctx, const char *selected, int len
         text.text = style->combo.label_normal;
     }
 
+    text.text = nk_rgb_factor(text.text, style->combo.color_factor);
+    symbol_color = nk_rgb_factor(symbol_color, style->combo.color_factor);
+
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_image(&win->buffer, header, &background->data.image, nk_white);
+            nk_draw_image(&win->buffer, header, &background->data.image, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_white);
+            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             text.background = background->data.color;
-            nk_fill_rect(&win->buffer, header, style->combo.rounding, background->data.color);
-            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, style->combo.border_color);
+            nk_fill_rect(&win->buffer, header, style->combo.rounding, nk_rgb_factor(background->data.color, style->combo.color_factor));
+            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, nk_rgb_factor(style->combo.border_color, style->combo.color_factor));
             break;
     }
     {
@@ -29817,14 +29760,14 @@ nk_combo_begin_image(struct nk_context *ctx, struct nk_image img, struct nk_vec2
 
     switch (background->type) {
         case NK_STYLE_ITEM_IMAGE:
-            nk_draw_image(&win->buffer, header, &background->data.image, nk_white);
+            nk_draw_image(&win->buffer, header, &background->data.image, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
-            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_white);
+            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
-            nk_fill_rect(&win->buffer, header, style->combo.rounding, background->data.color);
-            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, style->combo.border_color);
+            nk_fill_rect(&win->buffer, header, style->combo.rounding, nk_rgb_factor(background->data.color, style->combo.color_factor));
+            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, nk_rgb_factor(style->combo.border_color, style->combo.color_factor));
             break;
     }
     {
@@ -29912,19 +29855,21 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
         text.text = style->combo.label_normal;
     }
 
+    text.text = nk_rgb_factor(text.text, style->combo.color_factor);
+
     switch(background->type) {
         case NK_STYLE_ITEM_IMAGE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_image(&win->buffer, header, &background->data.image, nk_white);
+            nk_draw_image(&win->buffer, header, &background->data.image, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_NINE_SLICE:
             text.background = nk_rgba(0, 0, 0, 0);
-            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_white);
+            nk_draw_nine_slice(&win->buffer, header, &background->data.slice, nk_rgb_factor(nk_white, style->combo.color_factor));
             break;
         case NK_STYLE_ITEM_COLOR:
             text.background = background->data.color;
-            nk_fill_rect(&win->buffer, header, style->combo.rounding, background->data.color);
-            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, style->combo.border_color);
+            nk_fill_rect(&win->buffer, header, style->combo.rounding, nk_rgb_factor(background->data.color, style->combo.color_factor));
+            nk_stroke_rect(&win->buffer, header, style->combo.rounding, style->combo.border, nk_rgb_factor(style->combo.border_color, style->combo.color_factor));
             break;
     }
     {
@@ -29963,7 +29908,7 @@ nk_combo_begin_image_text(struct nk_context *ctx, const char *selected, int len,
         image.y = header.y + style->combo.content_padding.y;
         image.h = header.h - 2 * style->combo.content_padding.y;
         image.w = image.h;
-        nk_draw_image(&win->buffer, image, &img, nk_white);
+        nk_draw_image(&win->buffer, image, &img, nk_rgb_factor(nk_white, style->combo.color_factor));
 
         /* draw label */
         text.padding = nk_vec2(0,0);

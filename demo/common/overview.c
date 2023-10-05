@@ -173,7 +173,7 @@ overview(struct nk_context *ctx)
                 }
 
                 if (nk_input_is_mouse_hovering_rect(in, links[0].bounds))
-                    nk_tooltip(ctx, "Linked icon");
+                    nk_tooltip(ctx, "This is red");
                 if (nk_input_is_mouse_hovering_rect(in, links[1].bounds))
 					nk_tooltip(ctx, "Wrapping is when text starts a new row after it reaches the edge of the allowed space");
                 if (nk_input_is_mouse_hovering_rect(in, links[2].bounds))
@@ -192,6 +192,7 @@ overview(struct nk_context *ctx)
 
             if (nk_tree_push(ctx, NK_TREE_NODE, "Button", NK_MINIMIZED))
             {
+
                 /* Buttons Widgets */
                 nk_layout_row_static(ctx, 30, 100, 3);
                 if (nk_button_label(ctx, "Button"))
@@ -283,23 +284,16 @@ overview(struct nk_context *ctx)
 
                 nk_layout_row_static(ctx, 30, 80, 1);
                 if (inactive) {
-                    struct nk_style_button button;
-                    button = ctx->style.button;
-                    ctx->style.button.normal = nk_style_item_color(nk_rgb(40,40,40));
-                    ctx->style.button.hover = nk_style_item_color(nk_rgb(40,40,40));
-                    ctx->style.button.active = nk_style_item_color(nk_rgb(40,40,40));
-                    ctx->style.button.border_color = nk_rgb(60,60,60);
-                    ctx->style.button.text_background = nk_rgb(60,60,60);
-                    ctx->style.button.text_normal = nk_rgb(60,60,60);
-                    ctx->style.button.text_hover = nk_rgb(60,60,60);
-                    ctx->style.button.text_active = nk_rgb(60,60,60);
-                    nk_button_label(ctx, "button");
-                    ctx->style.button = button;
-                } else if (nk_button_label(ctx, "button"))
+                    nk_widget_disable_begin(ctx);
+                }
+
+                if (nk_button_label(ctx, "button"))
                     fprintf(stdout, "button pressed\n");
+
+                nk_widget_disable_end(ctx);
+
                 nk_tree_pop(ctx);
             }
-
 
             if (nk_tree_push(ctx, NK_TREE_NODE, "Selectable", NK_MINIMIZED))
             {
@@ -564,7 +558,6 @@ overview(struct nk_context *ctx)
                         nk_combo_end(ctx);
                     }
                 }
-
                 nk_tree_pop(ctx);
             }
 
