@@ -225,20 +225,22 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
         ishovered = nk_input_is_mouse_hovering_rect(&ctx->input, win_bounds);
         if ((win != ctx->active) && ishovered && !ctx->input.mouse.buttons[NK_BUTTON_LEFT].down) {
             iter = win->next;
-            while (iter) {
-                struct nk_rect iter_bounds = (!(iter->flags & NK_WINDOW_MINIMIZED))?
-                    iter->bounds: nk_rect(iter->bounds.x, iter->bounds.y, iter->bounds.w, h);
-                if (NK_INTERSECT(win_bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
-                    iter_bounds.x, iter_bounds.y, iter_bounds.w, iter_bounds.h) &&
-                    (!(iter->flags & NK_WINDOW_HIDDEN)))
-                    break;
+            if (!(win->flags & NK_WINDOW_FOCUS_IF_LATEST)) {
+                while (iter) {
+                    struct nk_rect iter_bounds = (!(iter->flags & NK_WINDOW_MINIMIZED))?
+                        iter->bounds: nk_rect(iter->bounds.x, iter->bounds.y, iter->bounds.w, h);
+                    if (NK_INTERSECT(win_bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
+                        iter_bounds.x, iter_bounds.y, iter_bounds.w, iter_bounds.h) &&
+                        (!(iter->flags & NK_WINDOW_HIDDEN)))
+                        break;
 
-                if (iter->popup.win && iter->popup.active && !(iter->flags & NK_WINDOW_HIDDEN) &&
-                    NK_INTERSECT(win->bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
-                    iter->popup.win->bounds.x, iter->popup.win->bounds.y,
-                    iter->popup.win->bounds.w, iter->popup.win->bounds.h))
-                    break;
-                iter = iter->next;
+                    if (iter->popup.win && iter->popup.active && !(iter->flags & NK_WINDOW_HIDDEN) &&
+                        NK_INTERSECT(win->bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
+                        iter->popup.win->bounds.x, iter->popup.win->bounds.y,
+                        iter->popup.win->bounds.w, iter->popup.win->bounds.h))
+                        break;
+                    iter = iter->next;
+                }
             }
         }
 
@@ -272,7 +274,7 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
                 nk_insert_window(ctx, iter, NK_INSERT_BACK);
             }
         } else {
-            if (!iter && ctx->end != win && !(win->flags & NK_WINDOW_FOCUS_IF_LATEST)) {
+            if (!iter && ctx->end != win) {
                 if (!(win->flags & NK_WINDOW_BACKGROUND)) {
                     /* current window is active in that position so transfer to top
                      * at the highest priority in stack */
