@@ -9342,17 +9342,23 @@ nk_draw_nine_slice(struct nk_command_buffer *b, struct nk_rect r,
     const struct nk_nine_slice *slc, struct nk_color col)
 {
     struct nk_image img;
-    const struct nk_image *slcimg = (const struct nk_image*)slc;
     nk_ushort rgnX, rgnY, rgnW, rgnH;
-    rgnX = slcimg->region[0];
-    rgnY = slcimg->region[1];
-    rgnW = slcimg->region[2];
-    rgnH = slcimg->region[3];
+    rgnX = slc->img.region[0];
+    rgnY = slc->img.region[1];
+
+    if (!slc->img.region[2]) {
+        rgnW = slc->img.w;
+        rgnH = slc->img.h;
+    }
+    else {
+        rgnW = slc->img.region[2];
+        rgnH = slc->img.region[3];
+    }
 
     /* top-left */
-    img.handle = slcimg->handle;
-    img.w = slcimg->w;
-    img.h = slcimg->h;
+    img.handle = slc->img.handle;
+    img.w = slc->img.w;
+    img.h = slc->img.h;
     img.region[0] = rgnX;
     img.region[1] = rgnY;
     img.region[2] = slc->l;
@@ -20417,20 +20423,22 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
         ishovered = nk_input_is_mouse_hovering_rect(&ctx->input, win_bounds);
         if ((win != ctx->active) && ishovered && !ctx->input.mouse.buttons[NK_BUTTON_LEFT].down) {
             iter = win->next;
-            while (iter) {
-                struct nk_rect iter_bounds = (!(iter->flags & NK_WINDOW_MINIMIZED))?
-                    iter->bounds: nk_rect(iter->bounds.x, iter->bounds.y, iter->bounds.w, h);
-                if (NK_INTERSECT(win_bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
-                    iter_bounds.x, iter_bounds.y, iter_bounds.w, iter_bounds.h) &&
-                    (!(iter->flags & NK_WINDOW_HIDDEN)))
-                    break;
+            if (!(win->flags & NK_WINDOW_FOCUS_IF_LATEST)) {
+                while (iter) {
+                    struct nk_rect iter_bounds = (!(iter->flags & NK_WINDOW_MINIMIZED))?
+                        iter->bounds: nk_rect(iter->bounds.x, iter->bounds.y, iter->bounds.w, h);
+                    if (NK_INTERSECT(win_bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
+                        iter_bounds.x, iter_bounds.y, iter_bounds.w, iter_bounds.h) &&
+                        (!(iter->flags & NK_WINDOW_HIDDEN)))
+                        break;
 
-                if (iter->popup.win && iter->popup.active && !(iter->flags & NK_WINDOW_HIDDEN) &&
-                    NK_INTERSECT(win->bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
-                    iter->popup.win->bounds.x, iter->popup.win->bounds.y,
-                    iter->popup.win->bounds.w, iter->popup.win->bounds.h))
-                    break;
-                iter = iter->next;
+                    if (iter->popup.win && iter->popup.active && !(iter->flags & NK_WINDOW_HIDDEN) &&
+                        NK_INTERSECT(win->bounds.x, win_bounds.y, win_bounds.w, win_bounds.h,
+                        iter->popup.win->bounds.x, iter->popup.win->bounds.y,
+                        iter->popup.win->bounds.w, iter->popup.win->bounds.h))
+                        break;
+                    iter = iter->next;
+                }
             }
         }
 
@@ -20464,7 +20472,7 @@ nk_begin_titled(struct nk_context *ctx, const char *name, const char *title,
                 nk_insert_window(ctx, iter, NK_INSERT_BACK);
             }
         } else {
-            if (!iter && ctx->end != win && !(win->flags & NK_WINDOW_FOCUS_IF_LATEST)) {
+            if (!iter && ctx->end != win) {
                 if (!(win->flags & NK_WINDOW_BACKGROUND)) {
                     /* current window is active in that position so transfer to top
                      * at the highest priority in stack */
@@ -24245,13 +24253,13 @@ nk_sub9slice_handle(nk_handle handle, nk_ushort w, nk_ushort h, struct nk_rect r
     return s;
 }
 NK_API struct nk_nine_slice
-nk_nine_slice_handle(nk_handle handle, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
+nk_nine_slice_handle(nk_handle handle, nk_ushort w, nk_ushort h, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
 {
     struct nk_nine_slice s;
     struct nk_image *i = &s.img;
     nk_zero(&s, sizeof(s));
     i->handle = handle;
-    i->w = 0; i->h = 0;
+    i->w = w; i->h = h;
     i->region[0] = 0;
     i->region[1] = 0;
     i->region[2] = 0;
@@ -24260,14 +24268,14 @@ nk_nine_slice_handle(nk_handle handle, nk_ushort l, nk_ushort t, nk_ushort r, nk
     return s;
 }
 NK_API struct nk_nine_slice
-nk_nine_slice_ptr(void *ptr, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
+nk_nine_slice_ptr(void *ptr, nk_ushort w, nk_ushort h, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
 {
     struct nk_nine_slice s;
     struct nk_image *i = &s.img;
     nk_zero(&s, sizeof(s));
     NK_ASSERT(ptr);
     i->handle.ptr = ptr;
-    i->w = 0; i->h = 0;
+    i->w = w; i->h = h;
     i->region[0] = 0;
     i->region[1] = 0;
     i->region[2] = 0;
@@ -24276,13 +24284,13 @@ nk_nine_slice_ptr(void *ptr, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
     return s;
 }
 NK_API struct nk_nine_slice
-nk_nine_slice_id(int id, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
+nk_nine_slice_id(int id, nk_ushort w, nk_ushort h, nk_ushort l, nk_ushort t, nk_ushort r, nk_ushort b)
 {
     struct nk_nine_slice s;
     struct nk_image *i = &s.img;
     nk_zero(&s, sizeof(s));
     i->handle.id = id;
-    i->w = 0; i->h = 0;
+    i->w = w; i->h = h;
     i->region[0] = 0;
     i->region[1] = 0;
     i->region[2] = 0;
@@ -26011,6 +26019,7 @@ nk_do_progress(nk_flags *state,
     prog_value = NK_MIN(value, max);
     prog_value = nk_progress_behavior(state, in, bounds, cursor,max, prog_value, modifiable);
     cursor.w = cursor.w * prog_scale;
+    cursor.w = NK_MIN(cursor.w, bounds.w - (2 * style->padding.x + 2 * style->border));
 
     /* draw progressbar */
     if (style->draw_begin) style->draw_begin(out, style->userdata);

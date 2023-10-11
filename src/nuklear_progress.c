@@ -111,6 +111,7 @@ nk_do_progress(nk_flags *state,
     prog_value = NK_MIN(value, max);
     prog_value = nk_progress_behavior(state, in, bounds, cursor,max, prog_value, modifiable);
     cursor.w = cursor.w * prog_scale;
+    cursor.w = NK_MIN(cursor.w, bounds.w - (2 * style->padding.x + 2 * style->border));
 
     /* draw progressbar */
     if (style->draw_begin) style->draw_begin(out, style->userdata);
