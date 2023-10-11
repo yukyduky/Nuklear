@@ -419,17 +419,23 @@ nk_draw_nine_slice(struct nk_command_buffer *b, struct nk_rect r,
     const struct nk_nine_slice *slc, struct nk_color col)
 {
     struct nk_image img;
-    const struct nk_image *slcimg = (const struct nk_image*)slc;
     nk_ushort rgnX, rgnY, rgnW, rgnH;
-    rgnX = slcimg->region[0];
-    rgnY = slcimg->region[1];
-    rgnW = slcimg->region[2];
-    rgnH = slcimg->region[3];
+    rgnX = slc->img.region[0];
+    rgnY = slc->img.region[1];
+
+    if (!slc->img.region[2]) {
+        rgnW = slc->img.w;
+        rgnH = slc->img.h;
+    }
+    else {
+        rgnW = slc->img.region[2];
+        rgnH = slc->img.region[3];
+    }
 
     /* top-left */
-    img.handle = slcimg->handle;
-    img.w = slcimg->w;
-    img.h = slcimg->h;
+    img.handle = slc->img.handle;
+    img.w = slc->img.w;
+    img.h = slc->img.h;
     img.region[0] = rgnX;
     img.region[1] = rgnY;
     img.region[2] = slc->l;
