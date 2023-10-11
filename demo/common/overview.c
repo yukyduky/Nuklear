@@ -286,7 +286,7 @@ overview(struct nk_context *ctx)
                 if (inactive) {
                     nk_widget_disable_begin(ctx);
                 }
-
+                    
                 if (nk_button_label(ctx, "button"))
                     fprintf(stdout, "button pressed\n");
 

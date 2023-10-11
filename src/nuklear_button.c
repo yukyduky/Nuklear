@@ -238,7 +238,7 @@ nk_draw_button_image(struct nk_command_buffer *out,
     nk_flags state, const struct nk_style_button *style, const struct nk_image *img)
 {
     nk_draw_button(out, bounds, state, style);
-    nk_draw_image(out, *content, img, nk_white);
+    nk_draw_image(out, *content, img, nk_rgb_factor(nk_white, style->color_factor));
 }
 NK_LIB nk_bool
 nk_do_button_image(nk_flags *state,
@@ -357,7 +357,7 @@ nk_draw_button_text_image(struct nk_command_buffer *out,
     text.text = nk_rgb_factor(text.text, style->color_factor);
     text.padding = nk_vec2(0, 0);
     nk_widget_text(out, *label, str, len, &text, NK_TEXT_CENTERED, font);
-    nk_draw_image(out, *image, img, nk_white);
+    nk_draw_image(out, *image, img, nk_rgb_factor(nk_white, style->color_factor));
 }
 NK_LIB nk_bool
 nk_do_button_text_image(nk_flags *state,
