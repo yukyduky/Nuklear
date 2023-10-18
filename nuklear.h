@@ -3634,6 +3634,9 @@ NK_API void nk_menu_end(struct nk_context*);
  *                                  STYLE
  *
  * ============================================================================= */
+
+#define NK_WIDGET_DISABLED_FACTOR 0.5f
+
 enum nk_style_colors {
     NK_COLOR_TEXT,
     NK_COLOR_WINDOW,
@@ -3710,7 +3713,7 @@ NK_API struct nk_color nk_rgb_f(float r, float g, float b);
 NK_API struct nk_color nk_rgb_fv(const float *rgb);
 NK_API struct nk_color nk_rgb_cf(struct nk_colorf c);
 NK_API struct nk_color nk_rgb_hex(const char *rgb);
-NK_API struct nk_color nk_rgb_factor(const struct nk_color col, const float factor);
+NK_API struct nk_color nk_rgb_factor(struct nk_color col, const float factor);
 
 NK_API struct nk_color nk_rgba(int r, int g, int b, int a);
 NK_API struct nk_color nk_rgba_u32(nk_uint);
@@ -7676,14 +7679,14 @@ nk_parse_hex(const char *p, int length)
     return i;
 }
 NK_API struct nk_color
-nk_rgb_factor(const struct nk_color col, const float factor)
+nk_rgb_factor(struct nk_color col, const float factor)
 {
-    struct nk_color ret;
-    ret.r = col.r * factor;
-    ret.g = col.g * factor;
-    ret.b = col.b * factor;
-    ret.a = col.a;
-    return ret;
+    if (factor == 1.0f)
+        return col;
+    col.r *= factor;
+    col.g *= factor;
+    col.b *= factor;
+    return col;
 }
 NK_API struct nk_color
 nk_rgba(int r, int g, int b, int a)
@@ -18330,7 +18333,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     text->color = table[NK_COLOR_TEXT];
     text->padding = nk_vec2(0,0);
     text->color_factor = 1.0f;
-    text->disabled_factor = 0.5f;
+    text->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
 
     /* default button */
     button = &style->button;
@@ -18351,7 +18354,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 1.0f;
     button->rounding        = 4.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18373,7 +18376,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18395,7 +18398,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 1.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18418,7 +18421,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     toggle->border          = 0.0f;
     toggle->spacing         = 4;
     toggle->color_factor    = 1.0f;
-    toggle->disabled_factor = 0.5f;
+    toggle->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
 
     /* option toggle */
     toggle = &style->option;
@@ -18439,7 +18442,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     toggle->border          = 0.0f;
     toggle->spacing         = 4;
     toggle->color_factor    = 1.0f;
-    toggle->disabled_factor = 0.5f;
+    toggle->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
 
     /* selectable */
     select = &style->selectable;
@@ -18462,7 +18465,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     select->userdata        = nk_handle_ptr(0);
     select->rounding        = 0.0f;
     select->color_factor    = 1.0f;
-    select->disabled_factor = 0.5f;
+    select->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     select->draw_begin      = 0;
     select->draw_end        = 0;
 
@@ -18489,7 +18492,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     slider->bar_height      = 8;
     slider->rounding        = 0;
     slider->color_factor    = 1.0f;
-    slider->disabled_factor = 0.5f;
+    slider->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     slider->draw_begin      = 0;
     slider->draw_end        = 0;
 
@@ -18510,7 +18513,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 1.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->slider.dec_button = style->slider.inc_button;
@@ -18533,7 +18536,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     prog->cursor_rounding   = 0;
     prog->cursor_border     = 0;
     prog->color_factor      = 1.0f;
-    prog->disabled_factor   = 0.5f;
+    prog->disabled_factor   = NK_WIDGET_DISABLED_FACTOR;
     prog->draw_begin        = 0;
     prog->draw_end          = 0;
 
@@ -18558,7 +18561,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     scroll->border_cursor   = 0;
     scroll->rounding_cursor = 0;
     scroll->color_factor    = 1.0f;
-    scroll->disabled_factor = 0.5f;
+    scroll->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     scroll->draw_begin      = 0;
     scroll->draw_end        = 0;
     style->scrollv = style->scrollh;
@@ -18580,7 +18583,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 1.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->scrollh.dec_button = style->scrollh.inc_button;
@@ -18613,7 +18616,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->border            = 1;
     edit->rounding          = 0;
     edit->color_factor      = 1.0f;
-    edit->disabled_factor   = 0.5f;
+    edit->disabled_factor   = NK_WIDGET_DISABLED_FACTOR;
 
     /* property */
     property = &style->property;
@@ -18634,7 +18637,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     property->draw_begin    = 0;
     property->draw_end      = 0;
     property->color_factor  = 1.0f;
-    property->disabled_factor = 0.5f;
+    property->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
 
     /* property buttons */
     button = &style->property.dec_button;
@@ -18654,7 +18657,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->property.inc_button = style->property.dec_button;
@@ -18682,7 +18685,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     edit->border            = 0;
     edit->rounding          = 0;
     edit->color_factor      = 1.0f;
-    edit->disabled_factor   = 0.5f;
+    edit->disabled_factor   = NK_WIDGET_DISABLED_FACTOR;
 
     /* chart */
     chart = &style->chart;
@@ -18695,7 +18698,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     chart->border           = 0;
     chart->rounding         = 0;
     chart->color_factor     = 1.0f;
-    chart->disabled_factor  = 0.5f;
+    chart->disabled_factor  = NK_WIDGET_DISABLED_FACTOR;
 
     /* combo */
     combo = &style->combo;
@@ -18715,7 +18718,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     combo->border           = 1;
     combo->rounding         = 0;
     combo->color_factor     = 1.0f;
-    combo->disabled_factor  = 0.5f;
+    combo->disabled_factor  = NK_WIDGET_DISABLED_FACTOR;
 
     /* combo button */
     button = &style->combo.button;
@@ -18735,7 +18738,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18752,7 +18755,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     tab->border             = 1;
     tab->rounding           = 0;
     tab->color_factor       = 1.0f;
-    tab->disabled_factor    = 0.5f;
+    tab->disabled_factor    = NK_WIDGET_DISABLED_FACTOR;
 
     /* tab button */
     button = &style->tab.tab_minimize_button;
@@ -18772,7 +18775,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->tab.tab_maximize_button =*button;
@@ -18795,7 +18798,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
     style->tab.node_maximize_button =*button;
@@ -18834,7 +18837,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
@@ -18856,7 +18859,7 @@ nk_style_from_table(struct nk_context *ctx, const struct nk_color *table)
     button->border          = 0.0f;
     button->rounding        = 0.0f;
     button->color_factor    = 1.0f;
-    button->disabled_factor = 0.5f;
+    button->disabled_factor = NK_WIDGET_DISABLED_FACTOR;
     button->draw_begin      = 0;
     button->draw_end        = 0;
 
