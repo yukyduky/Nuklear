@@ -23661,6 +23661,10 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     char clean_text[len];
     nk_text_remove_code(string, &len, clean_text);
 
+    int max_icons = *num_icons;
+    *num_icons = 0;
+    int max_links = *num_links;
+    *num_links = 0;
     int rows = 0;
     int tags_found = 0;
     int colors_found = 0;
@@ -23724,10 +23728,11 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 struct nk_rect sub_line = line;
                 sub_line.x += text_width;
 
-                links[*num_links].bounds.x = sub_line.x;
-                links[*num_links].bounds.y = sub_line.y;
-                links[*num_links].bounds.h = sub_line.h;
-                links[*num_links].keyword_len = 0;
+                if (num_links < max_links) {
+                    links[*num_links].bounds.x = sub_line.x;
+                    links[*num_links].bounds.y = sub_line.y;
+                    links[*num_links].bounds.h = sub_line.h;
+                }
 
                 i--;
             }
@@ -23737,20 +23742,22 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 struct nk_rect sub_line = line;
                 sub_line.w = text_width;
 
-                links[*num_links].bounds.w = sub_line.w;
-
                 int kw_len = 0;
                 const int link_tags = 2;
                 do {
-                    links[*num_links].keyword[kw_len] = string[i + code_offset + kw_len + link_tags];
+                    if (num_links < max_links)
+                        links[*num_links].keyword[kw_len] = string[i + code_offset + kw_len + link_tags];
                     kw_len++;
                 } while (kw_len < len && string[i + code_offset + kw_len + link_tags] != LINK_KEY_DELIM_END);
 
-                links[*num_links].keyword_len = kw_len;
-                links[*num_links].keyword[links[*num_links].keyword_len] = '\0';
+                if (num_links < max_links) {
+                    links[*num_links].bounds.w = sub_line.w;
+                    links[*num_links].keyword_len = kw_len;
+                    links[*num_links].keyword[links[*num_links].keyword_len] = '\0';
+                }
                 keyword_total_len += kw_len;
-                (*num_links)++;
                 tags_found += link_tags + 1;
+                (*num_links)++;
                 i--;
             }
             else if (string[i + code_offset] == ICON_DELIM_START) {
@@ -23760,23 +23767,24 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 struct nk_rect sub_line = line;
                 sub_line.x += text_width;
 
-                icons[*num_icons].bounds.x = sub_line.x;
-                icons[*num_icons].bounds.y = sub_line.y;
-                icons[*num_icons].bounds.h = sub_line.h;
-                icons[*num_icons].bounds.w = sub_line.h;
-                icons[*num_icons].keyword_len = 0;
-
                 int kw_len = 0;
                 const int icon_tag = 1;
                 do {
-                    icons[*num_icons].keyword[kw_len] = string[i + code_offset + kw_len + icon_tag];
+                    if (num_icons < max_icons)
+                        icons[*num_icons].keyword[kw_len] = string[i + code_offset + kw_len + icon_tag];
                     kw_len++;
                 } while (kw_len < len && string[i + code_offset + kw_len + icon_tag] != ICON_DELIM_END);
 
+                if (num_icons < max_icons) {
+                    icons[*num_icons].bounds.x = sub_line.x;
+                    icons[*num_icons].bounds.y = sub_line.y;
+                    icons[*num_icons].bounds.h = sub_line.h;
+                    icons[*num_icons].bounds.w = sub_line.h;
+                    icons[*num_icons].keyword_len = kw_len;
+                    icons[*num_icons].keyword[kw_len] = '\0';
+                }
                 i++;
                 clean_text[i] = ' ';
-                icons[*num_icons].keyword_len = kw_len;
-                icons[*num_icons].keyword[kw_len] = '\0';
                 keyword_total_len += kw_len;
                 (*num_icons)++;
             }

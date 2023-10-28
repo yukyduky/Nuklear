@@ -153,15 +153,17 @@ overview(struct nk_context *ctx)
                 struct nk_color rect_color_green = nk_rgb(0, 255, 0);
                 struct nk_color rect_color_blue = nk_rgb(0, 0, 255);
 				const struct nk_input *in = &ctx->input;
-                struct nk_label_icon icons[3];
-                struct nk_label_link links[5];
-                int num_icons = 0;
-                int num_links = 0;
+                int max_icons = 3;
+                int num_icons = max_icons;
+                int max_links = 5;
+                int num_links = max_links;
+                struct nk_label_icon icons[max_icons];
+                struct nk_label_link links[max_links];
 
                 nk_layout_row_dynamic(ctx, 0, 1);
                 nk_label_coded_wrap(ctx, "This is #00FFFFanother longer[{r}](icon) line that displays# not only [#FFFF00wrapping#](wrapping) but also [#1bff00colors#](colors) and words{g} that are '[#FF00FFlinked#](test)' to tooltips or whatever else{b} you want to do like \n\n\n[#FF00FFnewlines#](key).", nk_rgb(200, 200, 200), links, &num_links, icons, &num_icons);
 
-                for (int i = 0; i < num_icons; i++)
+                for (int i = 0; i < max_icons; i++)
                 {
                     if (icons[i].keyword[0] == 'r') {
                         nk_fill_rect(cmd, icons[i].bounds, 3.0f, rect_color_red);
@@ -172,16 +174,20 @@ overview(struct nk_context *ctx)
                     }
                 }
 
-                if (nk_input_is_mouse_hovering_rect(in, links[0].bounds))
-                    nk_tooltip(ctx, "This is red");
-                if (nk_input_is_mouse_hovering_rect(in, links[1].bounds))
-					nk_tooltip(ctx, "Wrapping is when text starts a new row after it reaches the edge of the allowed space");
-                if (nk_input_is_mouse_hovering_rect(in, links[2].bounds))
-					nk_tooltip(ctx, "This is green!");
-                if (nk_input_is_mouse_hovering_rect(in, links[3].bounds))
-					nk_tooltip(ctx, "This doesn't have to be used for just tooltips.");
-                if (nk_input_is_mouse_hovering_rect(in, links[4].bounds))
-					nk_tooltip(ctx, "Newline: \\n");
+                for (int i = 0; i < max_links; i++) {
+                    if (nk_input_is_mouse_hovering_rect(in, links[i].bounds) && nk_stricmp(links[i].keyword, "icon") == 0)
+                        nk_tooltip(ctx, "This is red");
+                    if (nk_input_is_mouse_hovering_rect(in, links[i].bounds) && nk_stricmp(links[i].keyword, "wrapping") == 0)
+					    nk_tooltip(ctx, "Wrapping is when text starts a new row after it reaches the edge of the allowed space");
+                    if (nk_input_is_mouse_hovering_rect(in, links[i].bounds) && nk_stricmp(links[i].keyword, "colors") == 0)
+					    nk_tooltip(ctx, "This is green!");
+                    if (nk_input_is_mouse_hovering_rect(in, links[i].bounds) && nk_stricmp(links[i].keyword, "test") == 0)
+					    nk_tooltip(ctx, "This doesn't have to be used for just tooltips.");
+                    if (nk_input_is_mouse_hovering_rect(in, links[i].bounds) && nk_stricmp(links[i].keyword, "key") == 0)
+					    nk_tooltip(ctx, "Newline: \\n");
+                }
+
+                
 
                 nk_layout_row_static(ctx, 100, 200, 1);
                 nk_label_wrap(ctx, "This is a very long line to hopefully get this text to be wrapped into multiple lines to show line wrapping");
