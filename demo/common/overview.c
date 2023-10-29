@@ -222,6 +222,7 @@ overview(struct nk_context *ctx)
                 nk_layout_row_static(ctx, 30, 100, 2);
                 nk_button_symbol_label(ctx, NK_SYMBOL_TRIANGLE_LEFT, "prev", NK_TEXT_RIGHT);
                 nk_button_symbol_label(ctx, NK_SYMBOL_TRIANGLE_RIGHT, "next", NK_TEXT_LEFT);
+
                 nk_tree_pop(ctx);
             }
 
