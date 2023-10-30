@@ -23768,7 +23768,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 struct nk_rect sub_line = line;
                 sub_line.x += text_width;
 
-                if (num_links < max_links) {
+                if (*num_links < max_links) {
                     links[*num_links].bounds.x = sub_line.x;
                     links[*num_links].bounds.y = sub_line.y;
                     links[*num_links].bounds.h = sub_line.h;
@@ -23785,12 +23785,12 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 int kw_len = 0;
                 const int link_tags = 2;
                 do {
-                    if (num_links < max_links)
+                    if (*num_links < max_links)
                         links[*num_links].keyword[kw_len] = string[i + code_offset + kw_len + link_tags];
                     kw_len++;
                 } while (kw_len < len && string[i + code_offset + kw_len + link_tags] != LINK_KEY_DELIM_END);
 
-                if (num_links < max_links) {
+                if (*num_links < max_links) {
                     links[*num_links].bounds.w = sub_line.w;
                     links[*num_links].keyword_len = kw_len;
                     links[*num_links].keyword[links[*num_links].keyword_len] = '\0';
@@ -23810,12 +23810,12 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 int kw_len = 0;
                 const int icon_tag = 1;
                 do {
-                    if (num_icons < max_icons)
+                    if (*num_icons < max_icons)
                         icons[*num_icons].keyword[kw_len] = string[i + code_offset + kw_len + icon_tag];
                     kw_len++;
                 } while (kw_len < len && string[i + code_offset + kw_len + icon_tag] != ICON_DELIM_END);
 
-                if (num_icons < max_icons) {
+                if (*num_icons < max_icons) {
                     icons[*num_icons].bounds.x = sub_line.x;
                     icons[*num_icons].bounds.y = sub_line.y;
                     icons[*num_icons].bounds.h = sub_line.h;
