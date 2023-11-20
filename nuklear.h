@@ -3142,6 +3142,7 @@ NK_API void nk_widget_disable_end(struct nk_context* ctx);
 #define LINK_KEY_DELIM_END ')'
 #define ICON_DELIM_START '{'
 #define ICON_DELIM_END '}'
+#define NEWLINE_CHAR '\n'
 
 enum nk_text_align {
     NK_TEXT_ALIGN_LEFT        = 0x01,
@@ -21742,7 +21743,7 @@ nk_layout_get_min_row_height(struct nk_context *ctx)
 	NK_ASSERT(ctx->current);
 	NK_ASSERT(ctx->current->layout);
 	if (!ctx || !ctx->current || !ctx->current->layout)
-		return;
+		return 0.0f;
 	return ctx->current->layout->row.min_height;
 }
 NK_API void
@@ -23699,7 +23700,12 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     line.w = b.w - 2 * t->padding.x;
     line.h = 2 * t->padding.y + f->height;
 
+#ifndef __clang__
+    char* clean_text = (char*)malloc(len);
+#else
     char clean_text[len];
+#endif
+
     nk_text_remove_code(string, &len, clean_text);
 
     int max_icons = *num_icons;
@@ -23734,7 +23740,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         /* Find the linkdelim characters and calculate the bounds of the words they surround */
         /* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
         for (int i = done; i < done + fitting + fitting_extended; i++) {
-            if (string[i + code_offset] == '\n') {
+            if (string[i + code_offset] == NEWLINE_CHAR) {
                 newline_found = nk_true;
                 fitting = i - done - fitting_extended;
                 fitting = i - done - fitting_extended;
@@ -23853,6 +23859,10 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         done += fitting;
         line.y += f->height + 2 * t->padding.y;
     }
+#ifndef __clang__
+    free(clean_text);
+#endif
+
     nk_layout_extend_label_height(ctx, rows);
 }
 NK_LIB
@@ -23888,7 +23898,7 @@ void nk_text_remove_code(const char* text, int* len, char* clean_text)
             tags_found += 3;
             i += 2;
             int kw_len = 0;
-            while (text[i] != ')') {
+            while (text[i] != LINK_KEY_DELIM_END) {
                 kw_len++;
                 i++;
             }

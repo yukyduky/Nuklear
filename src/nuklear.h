@@ -2920,6 +2920,7 @@ NK_API void nk_widget_disable_end(struct nk_context* ctx);
 #define LINK_KEY_DELIM_END ')'
 #define ICON_DELIM_START '{'
 #define ICON_DELIM_END '}'
+#define NEWLINE_CHAR '\n'
 
 enum nk_text_align {
     NK_TEXT_ALIGN_LEFT        = 0x01,

@@ -13,7 +13,7 @@ nk_layout_get_min_row_height(struct nk_context *ctx)
 	NK_ASSERT(ctx->current);
 	NK_ASSERT(ctx->current->layout);
 	if (!ctx || !ctx->current || !ctx->current->layout)
-		return;
+		return 0.0f;
 	return ctx->current->layout->row.min_height;
 }
 NK_API void

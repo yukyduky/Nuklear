@@ -164,8 +164,9 @@ overview(struct nk_context *ctx)
                 int num_icons = max_icons;
                 int max_links = 5;
                 int num_links = max_links;
-                struct nk_label_icon icons[max_icons];
-                struct nk_label_link links[max_links];
+
+                struct nk_label_icon* icons = (struct nk_label_icon*)malloc(max_icons * sizeof(nk_label_icon));
+                struct nk_label_link* links = (struct nk_label_link*)malloc(max_links * sizeof(nk_label_link));
 
                 nk_layout_row_dynamic(ctx, 0, 1);
                 nk_label_coded_wrap(ctx, "This is #00FFFFanother longer[{r}](icon) line that displays# not only [#FFFF00wrapping#](wrapping) but also [#1bff00colors#](colors) and words{g} that are '[#FF00FFlinked#](test)' to tooltips or whatever else{b} you want to do like \n\n\n[#FF00FFnewlines#](key).", nk_rgb(200, 200, 200), links, &num_links, icons, &num_icons);
@@ -194,7 +195,8 @@ overview(struct nk_context *ctx)
 					    nk_tooltip(ctx, "Newline: \\n");
                 }
 
-                
+                free(icons);
+                free(links);
 
                 nk_layout_row_static(ctx, 100, 200, 1);
                 nk_label_wrap(ctx, "This is a very long line to hopefully get this text to be wrapped into multiple lines to show line wrapping");
