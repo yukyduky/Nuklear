@@ -22772,15 +22772,16 @@ nk_tree_element_image_push_hashed_base(struct nk_context *ctx, enum nk_tree_type
 
         switch (background->type) {
             case NK_STYLE_ITEM_IMAGE:
-                nk_draw_image(out, header, &background->data.image, nk_white);
+                nk_draw_image(out, header, &background->data.image, nk_rgb_factor(nk_white, style->tab.color_factor));
                 break;
             case NK_STYLE_ITEM_NINE_SLICE:
-                nk_draw_nine_slice(out, header, &background->data.slice, nk_white);
+                nk_draw_nine_slice(out, header, &background->data.slice, nk_rgb_factor(nk_white, style->tab.color_factor));
                 break;
             case NK_STYLE_ITEM_COLOR:
-                nk_fill_rect(out, header, 0, style->tab.border_color);
+                nk_fill_rect(out, header, 0, nk_rgb_factor(style->tab.border_color, style->tab.color_factor));
                 nk_fill_rect(out, nk_shrink_rect(header, style->tab.border),
-                    style->tab.rounding, background->data.color);
+                    style->tab.rounding, nk_rgb_factor(background->data.color, style->tab.color_factor));
+
                 break;
         }
     }
@@ -25457,7 +25458,7 @@ nk_draw_selectable(struct nk_command_buffer *out,
             break;
         case NK_STYLE_ITEM_COLOR:
             text.background = background->data.color;
-            nk_fill_rect(out, *bounds, style->rounding, nk_rgb_factor(background->data.color, style->color_factor));
+            nk_fill_rect(out, *bounds, style->rounding, background->data.color);
             break;
     }
     if (icon) {
@@ -27587,13 +27588,13 @@ nk_edit_draw_text(struct nk_command_buffer *out,
     float line_offset = 0;
     int line_count = 0;
 
-    foreground = nk_rgb_factor(foreground, style->color_factor);
-    background = nk_rgb_factor(background, style->color_factor);
-
     struct nk_text txt;
     txt.padding = nk_vec2(0,0);
     txt.background = background;
     txt.text = foreground;
+
+    foreground = nk_rgb_factor(foreground, style->color_factor);
+    background = nk_rgb_factor(background, style->color_factor);
 
     glyph_len = nk_utf_decode(text+text_len, &unicode, byte_len-text_len);
     if (!glyph_len) return;
