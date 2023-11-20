@@ -139,7 +139,11 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     line.w = b.w - 2 * t->padding.x;
     line.h = 2 * t->padding.y + f->height;
 
+#ifdef _MSC_VER
+    char* clean_text = (char*)malloc(len);
+#else
     char clean_text[len];
+#endif
     nk_text_remove_code(string, &len, clean_text);
 
     int max_icons = *num_icons;
@@ -293,6 +297,10 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         done += fitting;
         line.y += f->height + 2 * t->padding.y;
     }
+#ifdef _MSC_VER
+    free(clean_text);
+#endif
+
     nk_layout_extend_label_height(ctx, rows);
 }
 NK_LIB
