@@ -139,11 +139,12 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     line.w = b.w - 2 * t->padding.x;
     line.h = 2 * t->padding.y + f->height;
 
-#ifdef _MSC_VER
+#ifndef __clang__
     char* clean_text = (char*)malloc(len);
 #else
     char clean_text[len];
 #endif
+
     nk_text_remove_code(string, &len, clean_text);
 
     int max_icons = *num_icons;
@@ -178,7 +179,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         /* Find the linkdelim characters and calculate the bounds of the words they surround */
         /* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
         for (int i = done; i < done + fitting + fitting_extended; i++) {
-            if (string[i + code_offset] == '\n') {
+            if (string[i + code_offset] == NEWLINE_CHAR) {
                 newline_found = nk_true;
                 fitting = i - done - fitting_extended;
                 fitting = i - done - fitting_extended;
@@ -297,7 +298,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         done += fitting;
         line.y += f->height + 2 * t->padding.y;
     }
-#ifdef _MSC_VER
+#ifndef __clang__
     free(clean_text);
 #endif
 
@@ -336,7 +337,7 @@ void nk_text_remove_code(const char* text, int* len, char* clean_text)
             tags_found += 3;
             i += 2;
             int kw_len = 0;
-            while (text[i] != ')') {
+            while (text[i] != LINK_KEY_DELIM_END) {
                 kw_len++;
                 i++;
             }
