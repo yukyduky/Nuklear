@@ -161,17 +161,17 @@ overview(struct nk_context *ctx)
                 struct nk_color rect_color_blue = nk_rgb(0, 0, 255);
 				const struct nk_input *in = &ctx->input;
                 int max_icons = 3;
-                int num_icons = max_icons;
+                int num_icons = 0;
                 int max_links = 5;
-                int num_links = max_links;
+                int num_links = 0;
 
                 struct nk_label_icon* icons = (struct nk_label_icon*)malloc(max_icons * sizeof(nk_label_icon));
                 struct nk_label_link* links = (struct nk_label_link*)malloc(max_links * sizeof(nk_label_link));
 
                 nk_layout_row_dynamic(ctx, 0, 1);
-                nk_label_coded_wrap(ctx, "This is #00FFFFanother longer[{r}](icon) line that displays# not only [#FFFF00wrapping#](wrapping) but also [#1bff00colors#](colors) and words{g} that are '[#FF00FFlinked#](test)' to tooltips or whatever else{b} you want to do like \n\n\n[#FF00FFnewlines#](key).", nk_rgb(200, 200, 200), links, &num_links, icons, &num_icons);
+                nk_label_coded_wrap(ctx, "This is #00FFFFanother longer[{r}](icon) line that displays# not only [#FFFF00wrapping#](wrapping) but also [#1bff00colors#](colors) and words{g} that are '[#FF00FFlinked#](test)' to tooltips or whatever else{b} you want to do like \n\n\n[#FF00FFnewlines#](key). If you want to type coded chars you can 'escape' them with a \\ infront like \\#", nk_rgb(200, 200, 200), links, &num_links, max_links, icons, &num_icons, max_icons);
 
-                for (int i = 0; i < max_icons; i++)
+                for (int i = 0; i < num_icons; i++)
                 {
                     if (icons[i].keyword[0] == 'r') {
                         nk_fill_rect(cmd, icons[i].bounds, 3.0f, rect_color_red);
@@ -182,7 +182,7 @@ overview(struct nk_context *ctx)
                     }
                 }
 
-                for (int i = 0; i < max_links; i++) {
+                for (int i = 0; i < num_links; i++) {
                     if (nk_input_is_mouse_hovering_rect(in, links[i].bounds) && nk_stricmp(links[i].keyword, "icon") == 0)
                         nk_tooltip(ctx, "This is red");
                     if (nk_input_is_mouse_hovering_rect(in, links[i].bounds) && nk_stricmp(links[i].keyword, "wrapping") == 0)
