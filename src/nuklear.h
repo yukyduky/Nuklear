@@ -2070,6 +2070,21 @@ NK_API void nk_rule_horizontal(struct nk_context *ctx, struct nk_color color, nk
 /// nk_layout_space_rect_to_screen          | Converts rectangle from nk_layout_space coordinate space into screen space
 /// nk_layout_space_rect_to_local           | Converts rectangle from screen space into nk_layout_space coordinates
 */
+
+enum nk_widget_align {
+    NK_WIDGET_ALIGN_LEFT        = 0x01,
+    NK_WIDGET_ALIGN_CENTERED    = 0x02,
+    NK_WIDGET_ALIGN_RIGHT       = 0x04,
+    NK_WIDGET_ALIGN_TOP         = 0x08,
+    NK_WIDGET_ALIGN_MIDDLE      = 0x10,
+    NK_WIDGET_ALIGN_BOTTOM      = 0x20
+};
+enum nk_widget_alignment {
+    NK_WIDGET_LEFT        = NK_WIDGET_ALIGN_MIDDLE|NK_WIDGET_ALIGN_LEFT,
+    NK_WIDGET_CENTERED    = NK_WIDGET_ALIGN_MIDDLE|NK_WIDGET_ALIGN_CENTERED,
+    NK_WIDGET_RIGHT       = NK_WIDGET_ALIGN_MIDDLE|NK_WIDGET_ALIGN_RIGHT
+};
+
 /*/// #### nk_layout_get_min_row_height
 /// Gets the currently used minimum row height.
 ///
@@ -2995,23 +3010,23 @@ NK_API nk_bool nk_button_pop_behavior(struct nk_context*);
  *                                  CHECKBOX
  *
  * ============================================================================= */
-NK_API nk_bool nk_check_label(struct nk_context*, const char*, nk_bool active);
-NK_API nk_bool nk_check_text(struct nk_context*, const char*, int, nk_bool active);
-NK_API unsigned nk_check_flags_label(struct nk_context*, const char*, unsigned int flags, unsigned int value);
-NK_API unsigned nk_check_flags_text(struct nk_context*, const char*, int, unsigned int flags, unsigned int value);
-NK_API nk_bool nk_checkbox_label(struct nk_context*, const char*, nk_bool *active);
-NK_API nk_bool nk_checkbox_text(struct nk_context*, const char*, int, nk_bool *active);
-NK_API nk_bool nk_checkbox_flags_label(struct nk_context*, const char*, unsigned int *flags, unsigned int value);
-NK_API nk_bool nk_checkbox_flags_text(struct nk_context*, const char*, int, unsigned int *flags, unsigned int value);
+NK_API nk_bool nk_check_label(struct nk_context*, const char*, nk_bool active, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_check_text(struct nk_context*, const char*, int, nk_bool active, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API unsigned nk_check_flags_label(struct nk_context*, const char*, unsigned int flags, unsigned int value, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API unsigned nk_check_flags_text(struct nk_context*, const char*, int, unsigned int flags, unsigned int value, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_checkbox_label(struct nk_context*, const char*, nk_bool *active, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_checkbox_text(struct nk_context*, const char*, int, nk_bool *active, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_checkbox_flags_label(struct nk_context*, const char*, unsigned int *flags, unsigned int value, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_checkbox_flags_text(struct nk_context*, const char*, int, unsigned int *flags, unsigned int value, nk_flags widget_alignment, nk_flags text_alignment);
 /* =============================================================================
  *
  *                                  RADIO BUTTON
  *
  * ============================================================================= */
-NK_API nk_bool nk_radio_label(struct nk_context*, const char*, nk_bool *active);
-NK_API nk_bool nk_radio_text(struct nk_context*, const char*, int, nk_bool *active);
-NK_API nk_bool nk_option_label(struct nk_context*, const char*, nk_bool active);
-NK_API nk_bool nk_option_text(struct nk_context*, const char*, int, nk_bool active);
+NK_API nk_bool nk_radio_label(struct nk_context*, const char*, nk_bool *active, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_radio_text(struct nk_context*, const char*, int, nk_bool *active, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_option_label(struct nk_context*, const char*, nk_bool active, nk_flags widget_alignment, nk_flags text_alignment);
+NK_API nk_bool nk_option_text(struct nk_context*, const char*, int, nk_bool active, nk_flags widget_alignment, nk_flags text_alignment);
 /* =============================================================================
  *
  *                                  SELECTABLE
