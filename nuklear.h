@@ -23716,7 +23716,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     line.w = b.w - 2 * t->padding.x;
     line.h = 2 * t->padding.y + f->height;
 
-#ifndef __clang__
+#ifndef __clang__ // Clang can handle this without always dynamically allocating, MSVC can not
     char* clean_text = (char*)malloc(len);
 #else
     char clean_text[len];
@@ -30440,7 +30440,7 @@ nk_tooltipfv(struct nk_context *ctx, const char *fmt, va_list args)
 ///   - [y]: Minor version with non-breaking API and library changes
 ///   - [z]: Patch version with no direct changes to the API
 ///
-/// - 2023/11/26 (5.0.0)  - BREAKING CHANGE: Added alignment to check boxes and radio buttons. They
+/// - 2023/11/26 (5.0.0)  - BREAKING CHANGE: Added alignment to checkboxes and radio buttons. They
 ///                         all now require a widget and text alignment parameter.
 /// - 2023/10/11 (4.11.0) - Added nk_widget_disable_begin() and nk_widget_disable_end()
 /// - 2023/10/03 (4.11.0) - Added nk_widget_text_wrap_coded, wraps and handles coded text for colors and links

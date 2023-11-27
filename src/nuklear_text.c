@@ -139,7 +139,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     line.w = b.w - 2 * t->padding.x;
     line.h = 2 * t->padding.y + f->height;
 
-#ifndef __clang__
+#ifndef __clang__ // Clang can handle this without always dynamically allocating, MSVC can not
     char* clean_text = (char*)malloc(len);
 #else
     char clean_text[len];
