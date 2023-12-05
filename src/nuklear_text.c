@@ -90,7 +90,7 @@ nk_widget_text_wrap(struct nk_context *ctx, struct nk_command_buffer *o, struct 
 
 		nk_bool newline_found = nk_false;
 		for (int i = 0; i < fitting; i++) {
-			if (string[done + i] == '\n') {
+			if (string[done + i] == NK_NEWLINE_CHAR) {
 				fitting = i;
 				newline_found = nk_true;
 			}
@@ -175,15 +175,15 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         /* Find the linkdelim characters and calculate the bounds of the words they surround */
         /* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
         for (int i = done; i < done + fitting + fitting_extended; i++) {
-            if (string[i + code_offset] == ESCAPE_CODE && (string[i + code_offset + 1] == COLOR_DELIM || string[i + code_offset + 1] == LINK_DELIM_START || string[i + code_offset + 1] == LINK_DELIM_END || string[i + code_offset + 1] == ICON_DELIM_START || string[i + code_offset + 1] == ICON_DELIM_END)) {
+            if (string[i + code_offset] == NK_ESCAPE_CODE && (string[i + code_offset + 1] == NK_COLOR_DELIM || string[i + code_offset + 1] == NK_LINK_DELIM_START || string[i + code_offset + 1] == NK_LINK_DELIM_END || string[i + code_offset + 1] == NK_ICON_DELIM_START || string[i + code_offset + 1] == NK_ICON_DELIM_END)) {
                 i++;
                 tags_found++;
             } else {
-                if (string[i + code_offset] == NEWLINE_CHAR) {
+                if (string[i + code_offset] == NK_NEWLINE_CHAR) {
                     newline_found = nk_true;
                     fitting = i - done - fitting_extended;
                 }
-                else if (string[i + code_offset] == COLOR_DELIM) {
+                else if (string[i + code_offset] == NK_COLOR_DELIM) {
                     text_width = f->width(f->userdata, f->height, &clean_text[done], row_done);
                     struct nk_rect sub_line = line;
                     sub_line.x += text_width;
@@ -205,7 +205,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                     text.text = textColor;
                     i--;
                 }
-                else if (string[i + code_offset] == LINK_DELIM_START) {
+                else if (string[i + code_offset] == NK_LINK_DELIM_START) {
                     tags_found++;
 
                     link_start = i;
@@ -221,7 +221,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
 
                     i--;
                 }
-                else if (string[i + code_offset] == LINK_DELIM_END) {
+                else if (string[i + code_offset] == NK_LINK_DELIM_END) {
 
                     text_width = f->width(f->userdata, f->height, &clean_text[link_start], i - link_start);
                     struct nk_rect sub_line = line;
@@ -233,7 +233,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                         if (*num_links < max_links)
                             links[*num_links].keyword[kw_len] = string[i + code_offset + kw_len + link_tags];
                         kw_len++;
-                    } while (kw_len < len && string[i + code_offset + kw_len + link_tags] != LINK_KEY_DELIM_END);
+                    } while (kw_len < len && string[i + code_offset + kw_len + link_tags] != NK_LINK_KEY_DELIM_END);
 
                     if (*num_links < max_links) {
                         links[*num_links].bounds.w = sub_line.w;
@@ -245,7 +245,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                     (*num_links)++;
                     i--;
                 }
-                else if (string[i + code_offset] == ICON_DELIM_START) {
+                else if (string[i + code_offset] == NK_ICON_DELIM_START) {
                     clean_text[i] = ' ';
 
                     text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
@@ -258,7 +258,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                         if (*num_icons < max_icons)
                             icons[*num_icons].keyword[kw_len] = string[i + code_offset + kw_len + icon_tag];
                         kw_len++;
-                    } while (kw_len < len && string[i + code_offset + kw_len + icon_tag] != ICON_DELIM_END);
+                    } while (kw_len < len && string[i + code_offset + kw_len + icon_tag] != NK_ICON_DELIM_END);
 
                     if (*num_icons < max_icons) {
                         icons[*num_icons].bounds.x = sub_line.x;
@@ -278,7 +278,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
             code_offset = colors_found * hex_code_len + keyword_total_len + tags_found;
 
             /* Check if the ends are the next characters and extend the for loop to make sure we finish them or else we break them */
-            if (string[i + 1 + code_offset] == LINK_DELIM_END || string[i + 1 + code_offset] == COLOR_DELIM)
+            if (string[i + 1 + code_offset] == NK_LINK_DELIM_END || string[i + 1 + code_offset] == NK_COLOR_DELIM)
                 fitting_extended++;
             else
                 fitting_extended = 0;
@@ -316,42 +316,42 @@ void nk_text_remove_code(const char* text, int* len, char* clean_text)
 
     int code_offset = 0;
     for (int i = 0; i < *len; i++) {
-        if (text[i] == ESCAPE_CODE && i + 1 < *len && (text[i + 1] == COLOR_DELIM || text[i + 1] == LINK_DELIM_START || text[i + 1] == LINK_DELIM_END || text[i + 1] == ICON_DELIM_START || text[i + 1] == ICON_DELIM_END)) {
+        if (text[i] == NK_ESCAPE_CODE && i + 1 < *len && (text[i + 1] == NK_COLOR_DELIM || text[i + 1] == NK_LINK_DELIM_START || text[i + 1] == NK_LINK_DELIM_END || text[i + 1] == NK_ICON_DELIM_START || text[i + 1] == NK_ICON_DELIM_END)) {
             clean_text[i - code_offset] = text[i + 1];
             i++;
             tags_found++;
         } else {
-            if (text[i] != COLOR_DELIM && text[i] != LINK_DELIM_START && text[i] != LINK_DELIM_END) {
+            if (text[i] != NK_COLOR_DELIM && text[i] != NK_LINK_DELIM_START && text[i] != NK_LINK_DELIM_END) {
                 clean_text[i - code_offset] = text[i];
             }
-            else if (end_of_color && text[i] == COLOR_DELIM) {
+            else if (end_of_color && text[i] == NK_COLOR_DELIM) {
                 end_of_color = nk_false;
                 tags_found++;
                 colors_found++;
                 i += hex_code_len;
             }
-            else if (text[i] == COLOR_DELIM) {
+            else if (text[i] == NK_COLOR_DELIM) {
                 end_of_color = nk_true;
                 tags_found++;
             }
-            else if (text[i] == LINK_DELIM_START) {
+            else if (text[i] == NK_LINK_DELIM_START) {
                 tags_found++;
             }
-            else if (text[i] == LINK_DELIM_END) {
+            else if (text[i] == NK_LINK_DELIM_END) {
                 tags_found += 3;
                 i += 2;
                 int kw_len = 0;
-                while (text[i] != LINK_KEY_DELIM_END) {
+                while (text[i] != NK_LINK_KEY_DELIM_END) {
                     kw_len++;
                     i++;
                 }
                 link_keyword_len += kw_len;
             }
 
-            if (text[i] == ICON_DELIM_START) {
+            if (text[i] == NK_ICON_DELIM_START) {
                 i++;
                 int kw_len = 0;
-                while (text[i] != ICON_DELIM_END) {
+                while (text[i] != NK_ICON_DELIM_END) {
                     kw_len++;
                     i++;
                 }

@@ -2928,15 +2928,15 @@ NK_API void nk_widget_disable_end(struct nk_context* ctx);
  *
  * ============================================================================= */
 
-#define COLOR_DELIM '#'
-#define LINK_DELIM_START '['
-#define LINK_DELIM_END ']'
-#define LINK_KEY_DELIM_START '('
-#define LINK_KEY_DELIM_END ')'
-#define ICON_DELIM_START '{'
-#define ICON_DELIM_END '}'
-#define NEWLINE_CHAR '\n'
-#define ESCAPE_CODE '\\'
+#define NK_COLOR_DELIM '#'
+#define NK_LINK_DELIM_START '['
+#define NK_LINK_DELIM_END ']'
+#define NK_LINK_KEY_DELIM_START '('
+#define NK_LINK_KEY_DELIM_END ')'
+#define NK_ICON_DELIM_START '{'
+#define NK_ICON_DELIM_END '}'
+#define NK_NEWLINE_CHAR '\n'
+#define NK_ESCAPE_CODE '\\'
 
 enum nk_text_align {
     NK_TEXT_ALIGN_LEFT        = 0x01,
