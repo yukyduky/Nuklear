@@ -23666,8 +23666,9 @@ nk_widget_text_wrap(struct nk_context *ctx, struct nk_command_buffer *o, struct 
 	line.w = b.w - 2 * t->padding.x;
 	line.h = 2 * t->padding.y + f->height;
 
-	fitting = nk_text_clamp(f, string, len, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
 	while (done < len) {
+	    fitting = nk_text_clamp(f, &string[done], len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
+
 		if (!fitting) break;
 
 		rows++;
@@ -23688,7 +23689,6 @@ nk_widget_text_wrap(struct nk_context *ctx, struct nk_command_buffer *o, struct 
 
 		done += fitting;
 		line.y += f->height + 2 * t->padding.y;
-		fitting = nk_text_clamp(f, &string[done], len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
 	}
 	nk_layout_extend_label_height(ctx, rows);
 }
@@ -23697,6 +23697,12 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     const char* string, int len, const struct nk_text* t, const struct nk_user_font* f,
     struct nk_label_link* links, int* num_links, int max_links, struct nk_label_icon *icons, int *num_icons, int max_icons)
 {
+    if (len >= 2 && string[0] == NK_ESCAPE_CODE && string[1] == NK_ESCAPE_CODE)
+    {
+        nk_widget_text_wrap(ctx, o, b, string + 2, len - 2, t, f);
+        return;
+    }
+
     float width;
     int glyphs = 0;
     int fitting = 0;
