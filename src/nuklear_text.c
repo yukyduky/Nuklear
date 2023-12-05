@@ -113,12 +113,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     const char* string, int len, const struct nk_text* t, const struct nk_user_font* f,
     struct nk_label_link* links, int* num_links, int max_links, struct nk_label_icon *icons, int *num_icons, int max_icons)
 {
-    if (len >= 2 && string[0] == NK_ESCAPE_CODE && string[1] == NK_ESCAPE_CODE)
-    {
-        nk_widget_text_wrap(ctx, o, b, string + 2, len - 2, t, f);
-        return;
-    }
-
+    int cutoff_len = 0;
     float width;
     int glyphs = 0;
     int fitting = 0;
@@ -130,6 +125,13 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     NK_ASSERT(o);
     NK_ASSERT(t);
     if (!o || !t) return;
+
+    for (int i = 0; i < len - 1; i++) {
+        if (string[i] == NK_ESCAPE_CODE && string[i + 1] == NK_ESCAPE_CODE) {
+            cutoff_len = len - i;
+            len = i;
+        }
+    }
 
     text.padding = nk_vec2(0, 0);
     text.background = t->background;
@@ -161,6 +163,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     int link_start = 0;
     int code_offset = 0;
     nk_bool end_of_color = nk_true;
+    int row_done = 0;
 
     while (done < len) {
         /* Find the the number of characters of the string that can fit in the width of the window, only separating at spaces */
@@ -170,8 +173,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
 
         rows++;
 
-        int row_done = 0;
-        float text_width = 0;
+        row_done = 0;
         int fitting_extended = 0;
         code_offset = colors_found * hex_code_len + keyword_total_len + tags_found;
         nk_bool newline_found = nk_false;
@@ -190,7 +192,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                     fitting = i - done - fitting_extended;
                 }
                 else if (string[i + code_offset] == NK_COLOR_DELIM) {
-                    text_width = f->width(f->userdata, f->height, &clean_text[done], row_done);
+                    float text_width = f->width(f->userdata, f->height, &clean_text[done], row_done);
                     struct nk_rect sub_line = line;
                     sub_line.x += text_width;
 
@@ -215,7 +217,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                     tags_found++;
 
                     link_start = i;
-                    text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
+                    float text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
                     struct nk_rect sub_line = line;
                     sub_line.x += text_width;
 
@@ -229,7 +231,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 }
                 else if (string[i + code_offset] == NK_LINK_DELIM_END) {
 
-                    text_width = f->width(f->userdata, f->height, &clean_text[link_start], i - link_start);
+                    float text_width = f->width(f->userdata, f->height, &clean_text[link_start], i - link_start);
                     struct nk_rect sub_line = line;
                     sub_line.w = text_width;
 
@@ -254,7 +256,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
                 else if (string[i + code_offset] == NK_ICON_DELIM_START) {
                     clean_text[i] = ' ';
 
-                    text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
+                    float text_width = f->width(f->userdata, f->height, &clean_text[done], i - done);
                     struct nk_rect sub_line = line;
                     sub_line.x += text_width;
 
@@ -289,11 +291,13 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
             else
                 fitting_extended = 0;
         }
+        /* Draw the rest of the line */
         if (row_done != fitting) {
-            text_width = f->width(f->userdata, f->height, &clean_text[done], fitting - (fitting - row_done));
+            float text_width = f->width(f->userdata, f->height, &clean_text[done], fitting - (fitting - row_done));
             struct nk_rect sub_line = line;
             sub_line.x += text_width;
             nk_widget_text(o, sub_line, &clean_text[done + row_done], fitting - row_done, &text, NK_TEXT_LEFT, f);
+            row_done += fitting - row_done;
         }
 
         /* Skip drawing the newline character */
@@ -304,9 +308,56 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         done += fitting;
         line.y += f->height + 2 * t->padding.y;
     }
+
+    /* Skip the double escape chars */
+    done += 2;
+
+    /* Draws escaped text on the same line if there is room */
+    if (len) {
 #ifndef __clang__
-    free(clean_text);
+        free(clean_text);
 #endif
+        if (cutoff_len) {
+	        done -= fitting;
+	        line.y -= f->height + 2 * t->padding.y;
+
+	        fitting = nk_text_clamp(f, &string[done + code_offset], len + cutoff_len - done, line.w, &glyphs, &width, seperator, NK_LEN(seperator));
+
+	        float text_width = f->width(f->userdata, f->height, &string[done + code_offset], fitting - (fitting - row_done));
+	        struct nk_rect sub_line = line;
+	        sub_line.x += text_width;
+	        nk_widget_text(o, sub_line, &string[done + code_offset + row_done], fitting - row_done, &text, NK_TEXT_LEFT, f);
+
+	        done += fitting;
+	        line.y += f->height + 2 * t->padding.y;
+        }
+    }
+
+    /* Draws the rest of the escaped text on newlines */
+    while (done < len + cutoff_len) {
+	    fitting = nk_text_clamp(f, &string[done + code_offset], len + cutoff_len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
+
+		if (!fitting) break;
+
+		rows++;
+
+		nk_bool newline_found = nk_false;
+		for (int i = 0; i < fitting; i++) {
+			if (string[done + code_offset + i] == NK_NEWLINE_CHAR) {
+				fitting = i;
+				newline_found = nk_true;
+			}
+		}
+
+		nk_widget_text(o, line, &string[done + code_offset], fitting, &text, NK_TEXT_LEFT, f);
+
+		if (newline_found) {
+			fitting++;
+		}
+
+		done += fitting;
+		line.y += f->height + 2 * t->padding.y;
+	}
 
     nk_layout_extend_label_height(ctx, rows);
 }
