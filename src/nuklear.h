@@ -2928,6 +2928,7 @@ NK_API void nk_widget_disable_end(struct nk_context* ctx);
  *
  * ============================================================================= */
 
+#define NK_MAX_COLOR_STACK 64
 #define NK_COLOR_DELIM '#' /* Marks the start and end of a colorblock, the start is also followed by a hexcode for what color to use. Ex: #FF00FFTest# */
 #define NK_LINK_DELIM_START '[' /* Marks the start of the linked block. Ex: [Linked rect](link_key)  */
 #define NK_LINK_DELIM_END ']'

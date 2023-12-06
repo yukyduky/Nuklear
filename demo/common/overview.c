@@ -172,8 +172,9 @@ overview(struct nk_context *ctx)
                 struct nk_label_link* links = (struct nk_label_link*)malloc(max_links * sizeof(nk_label_link));
 
                 nk_layout_row_dynamic(ctx, 0, 1);
-                nk_label_coded_wrap(ctx, "\\\\[14:32][Error] This has been made to escape all coded characters and can also wrap and dynamically grow in height.", nk_rgb(200, 200, 200), links, &num_links, max_links, icons, &num_icons, max_icons);
-                nk_label_coded_wrap(ctx, "This is #00FFFFanother longer[{r}](icon) line that displays# not only [#FFFF00wrapping#](wrapping) but also\\\\ [#1bff00colors#](colors) and words{g} that are '[#FF00FFlinked#](test)' to tooltips or whatever else{b} you want to do like \n\n\n[#FF00FFnewlines#](key). If you want to type coded chars you can 'escape' them with a \\ infront like \\#", nk_rgb(200, 200, 200), links, &num_links, max_links, icons, &num_icons, max_icons);
+                nk_label_coded_wrap(ctx, "Test #FF00FFThis#! Line", nk_rgb(200, 200, 200), links, &num_links, max_links, icons, &num_icons, max_icons);
+                //nk_label_coded_wrap(ctx, "\\\\[14:32][Error] This has been made to escape all coded characters and can also wrap and dynamically grow in height.", nk_rgb(200, 200, 200), links, &num_links, max_links, icons, &num_icons, max_icons);
+                nk_label_coded_wrap(ctx, "This is #00FFFFanother #FF00FFlonger#![{r}](icon) line that displays#! not only [#FFFF00wrapping#!](wrapping) but also [#1bff00colors#!](colors) and words{g} that are '[#FF00FFlinked#!](test)' to tooltips or whatever else{b} you want to do like \n\n\n[#FF00FFnewlines#!](key). If you want to type coded chars you can 'escape' them with a \\ infront like \\#", nk_rgb(200, 200, 200), links, &num_links, max_links, icons, &num_icons, max_icons);
                 for (int i = 0; i < num_icons; i++)
                 {
                     if (icons[i].keyword[0] == 'r') {
