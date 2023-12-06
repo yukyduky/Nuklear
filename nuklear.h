@@ -23773,7 +23773,6 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         /* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
         for (int i = done; i < done + fitting + fitting_extended; i++) {
             if (string[i + code_offset] == NK_ESCAPE_CODE && i + code_offset + 1 < len && (string[i + code_offset + 1] == NK_COLOR_DELIM || string[i + code_offset + 1] == NK_LINK_DELIM_START || string[i + code_offset + 1] == NK_LINK_DELIM_END || string[i + code_offset + 1] == NK_ICON_DELIM_START || string[i + code_offset + 1] == NK_ICON_DELIM_END)) {
-                i++;
                 tags_found++;
             } else {
                 if (string[i + code_offset] == NK_NEWLINE_CHAR) {
