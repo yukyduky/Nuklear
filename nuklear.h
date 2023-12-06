@@ -3151,7 +3151,8 @@ NK_API void nk_widget_disable_end(struct nk_context* ctx);
  * ============================================================================= */
 
 #define NK_MAX_COLOR_STACK 64
-#define NK_COLOR_DELIM '#' /* Marks the start and end of a colorblock, the start is also followed by a hexcode for what color to use. Ex: #FF00FFTest# */
+#define NK_COLOR_DELIM '#' /* Marks the start and end of a colorblock, the start is also followed by a hexcode for what color to use. Ex: #FF00FFTest#! */
+#define NK_COLOR_DELIM_END '!'
 #define NK_LINK_DELIM_START '[' /* Marks the start of the linked block. Ex: [Linked rect](link_key)  */
 #define NK_LINK_DELIM_END ']'
 #define NK_LINK_KEY_DELIM_START '(' /* Marks the start of the link keyword. Ex: see above  */
@@ -23767,7 +23768,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         nk_bool newline_found = nk_false;
 
         /* Find the COLOR_DELIM characters and color the text according to the hex color */
-        /* Example with COLOR_DELIM character set as '#': "This #FFFFFFword# will be colored white" */
+        /* Example with COLOR_DELIM character set as '#': "This #FFFFFFword#! will be colored white" */
         /* Find the linkdelim characters and calculate the bounds of the words they surround */
         /* Example with linkdelim characters set as '[' and ']': "This [word's] bounds will be sent back and 'words' will be the keywords" */
         for (int i = done; i < done + fitting + fitting_extended; i++) {
@@ -23787,7 +23788,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
 
                     row_done = i - done;
 
-                    if (i + code_offset + 1 < len && string[i + code_offset + 1] == '!') {
+                    if (i + code_offset + 1 < len && string[i + code_offset + 1] == NK_COLOR_DELIM_END) {
                         if (color_stack_count > 1)
                             color_stack_count--;
                         tags_found++;
@@ -23968,7 +23969,7 @@ void nk_text_remove_code(const char* text, int* len, char* clean_text)
             if (text[i] != NK_COLOR_DELIM && text[i] != NK_LINK_DELIM_START && text[i] != NK_LINK_DELIM_END) {
                 clean_text[i - code_offset] = text[i];
             } else if (text[i] == NK_COLOR_DELIM ) {
-                if (i + 1 < *len && text[i + 1] == '!') {
+                if (i + 1 < *len && text[i + 1] == NK_COLOR_DELIM_END) {
                     tags_found += 2;
                     i++;
                 }
