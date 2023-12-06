@@ -312,7 +312,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     /* Skip the double escape chars */
     done += 2;
 
-    /* Draws escaped text on the same line if there is room */
+    /* Draw escaped text on the same line if there is room */
     if (len) {
 #ifndef __clang__
         free(clean_text);
@@ -333,7 +333,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         }
     }
 
-    /* Draws the rest of the escaped text on newlines */
+    /* Draw the rest of the escaped text on newlines */
     while (done < len + cutoff_len) {
 	    fitting = nk_text_clamp(f, &string[done + code_offset], len + cutoff_len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
 

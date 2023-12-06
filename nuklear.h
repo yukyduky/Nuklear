@@ -3150,12 +3150,12 @@ NK_API void nk_widget_disable_end(struct nk_context* ctx);
  *
  * ============================================================================= */
 
-#define NK_COLOR_DELIM '#' // Marks the start and end of a colorblock, the start is also followed by a hexcode for what color to use. Ex: #FF00FFTest#
-#define NK_LINK_DELIM_START '[' // Contains the part which the rect is formed by. Ex: [Linked rect](test)
+#define NK_COLOR_DELIM '#' /* Marks the start and end of a colorblock, the start is also followed by a hexcode for what color to use. Ex: #FF00FFTest# */
+#define NK_LINK_DELIM_START '[' /* Marks the start of the linked block. Ex: [Linked rect](link_key)  */
 #define NK_LINK_DELIM_END ']'
-#define NK_LINK_KEY_DELIM_START '(' // Contains the keyword or id for what to show. Ex: see above
+#define NK_LINK_KEY_DELIM_START '(' /* Marks the start of the link keyword. Ex: see above  */
 #define NK_LINK_KEY_DELIM_END ')'
-#define NK_ICON_DELIM_START '{' // Contains the keyword for what icon to draw. Ex: {test}
+#define NK_ICON_DELIM_START '{' /* Marks the start of the icon keyword. Ex: {icon_key} */
 #define NK_ICON_DELIM_END '}'
 #define NK_NEWLINE_CHAR '\n'
 #define NK_ESCAPE_CODE '\\'
@@ -23896,7 +23896,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
     /* Skip the double escape chars */
     done += 2;
 
-    /* Draws escaped text on the same line if there is room */
+    /* Draw escaped text on the same line if there is room */
     if (len) {
 #ifndef __clang__
         free(clean_text);
@@ -23917,7 +23917,7 @@ nk_widget_text_wrap_coded(struct nk_context* ctx, struct nk_command_buffer* o, s
         }
     }
 
-    /* Draws the rest of the escaped text on newlines */
+    /* Draw the rest of the escaped text on newlines */
     while (done < len + cutoff_len) {
 	    fitting = nk_text_clamp(f, &string[done + code_offset], len + cutoff_len - done, line.w, &glyphs, &width, seperator,NK_LEN(seperator));
 
